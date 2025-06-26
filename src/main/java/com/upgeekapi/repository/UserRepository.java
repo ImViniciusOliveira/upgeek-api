@@ -6,9 +6,19 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Repositório para operações de acesso a dados da entidade {@link User}.
+ * Fornece métodos CRUD básicos e consultas customizadas herdadas de JpaRepository.
+ */
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    // Agora, o método principal para encontrar um usuário para login é pelo email.
+    /**
+     * Busca um usuário pelo seu endereço de email único.
+     * O Spring Data JPA implementa este método automaticamente baseado em seu nome.
+     *
+     * @param email O email do usuário a ser buscado.
+     * @return um {@link Optional} contendo o usuário se encontrado, ou um Optional vazio caso contrário.
+     */
     Optional<User> findByEmail(String email);
 }

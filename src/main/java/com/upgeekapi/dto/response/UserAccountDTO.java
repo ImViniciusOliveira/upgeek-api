@@ -2,23 +2,34 @@ package com.upgeekapi.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(description = "Dados detalhados da conta do usuário")
+/**
+ * DTO que representa os dados públicos e de gamificação de uma conta de usuário.
+ * Utilizado para exibir informações de perfil no frontend, como na página de conta ou na navbar.
+ */
+@Schema(description = "Dados detalhados da conta de um usuário para exibição.")
 public record UserAccountDTO(
-        @Schema(description = "ID interno do usuário no banco de dados (UUID).", example = "123e4567-e89b-12d3-a456-426614174000")
+
+        @Schema(description = "O identificador único (UUID para String para facilitar o uso HTTP) do usuário no sistema.",
+                example = "123e4567-e89b-12d3-a456-426614174000")
         String id,
 
-        @Schema(description = "Email do usuário.", example = "usuario@email.com")
+        @Schema(description = "O endereço de email associado à conta do usuário.",
+                example = "geek.master@email.com")
         String email,
 
-        @Schema(description = "Nome de exibição do usuário.", example = "Usuário Geek")
+        @Schema(description = "O nome de exibição público do usuário.",
+                example = "Geek Master")
         String name,
 
-        @Schema(description = "Nível atual do usuário no sistema de gamificação.", example = "5")
+        @Schema(description = "O nível atual do usuário no sistema de gamificação.",
+                example = "10")
         int level,
 
-        @Schema(description = "Pontos de experiência (XP) acumulados pelo usuário.", example = "4500")
+        @Schema(description = "A quantidade total de pontos de experiência (XP) do usuário.",
+                example = "15000")
         long xp,
 
-        @Schema(description = "Título do usuário baseado no seu nível de gamificação.", example = "Colecionador Lendário")
+        @Schema(description = "O título atual do usuário, baseado em seu nível ou conquistas.",
+                example = "Colecionador Nível 10")
         String title
 ) {}
