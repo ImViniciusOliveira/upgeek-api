@@ -1,42 +1,58 @@
 package com.upgeekapi.config;
 
+import com.upgeekapi.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-/**
- * Classe de configuração central para o Spring Security.
- * Define as regras de acesso, filtros de segurança e outras políticas.
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Desabilita o CSRF, pois nossa API é stateless (não usa sessões/cookies para autenticação)
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // 2. Define a política de sessão como STATELESS, essencial para APIs REST com JWT/Bearer Token
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 3. Configura as regras de autorização para cada endpoint
                 .authorizeHttpRequests(authorize -> authorize
-                        // A REGRA PRINCIPAL: Permite acesso PÚBLICO a todos os nossos endpoints de teste
-                        .requestMatchers("/api/account/test/**", "/api/account/all").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Libera o Swagger
+                        // Endpoints públicos
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                        // Para QUALQUER OUTRA requisição, exija autenticação
+                        // Endpoint para ADMINS
+                        .requestMatchers("/api/account/all").hasRole("ADMIN")
+
+                        // Endpoint para USUÁRIOS (e Admins, pois eles também têm a ROLE_USER)
+                        .requestMatchers("/api/auth/me").hasRole("USER")
+
+                        // Exige autenticação para qualquer outra requisição
                         .anyRequest().authenticated()
-                );
-
-        // TODO: Futuramente, adicionaremos aqui o nosso filtro de autenticação do Auth0.
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Bean para o codificador de senhas.
+     * Essencial para a verificação segura de senhas no futuro.
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

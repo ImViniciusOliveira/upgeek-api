@@ -9,9 +9,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Dados detalhados da conta de um usuário para exibição.")
 public record UserAccountDTO(
 
-        @Schema(description = "O identificador único (UUID para String para facilitar o uso HTTP) do usuário no sistema.",
-                example = "123e4567-e89b-12d3-a456-426614174000")
-        String id,
+        @Schema(description = "O identificador único do usuário no sistema.", example = "1")
+        Long id,
 
         @Schema(description = "O endereço de email associado à conta do usuário.",
                 example = "geek.master@email.com")

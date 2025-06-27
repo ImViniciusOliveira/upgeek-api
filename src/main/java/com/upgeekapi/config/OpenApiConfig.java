@@ -23,12 +23,10 @@ public class OpenApiConfig {
         final String securitySchemeName = "bearerAuth";
 
         return new OpenAPI()
-                /*
-                 * TODO: A configuração de segurança abaixo deve ser reativada
-                 * quando a camada de autenticação (ex: JWT com Auth0) for implementada.
-                 * Ela adiciona o botão "Authorize" global e define o esquema Bearer Token.
-                 *
+                // **AGORA ATIVADO:** Adiciona o botão "Authorize" global na UI do Swagger.
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+
+                // **AGORA ATIVADO:** Define COMO a segurança "bearerAuth" funciona.
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()
                                 .name(securitySchemeName)
@@ -37,7 +35,6 @@ public class OpenApiConfig {
                                 .bearerFormat("JWT")
                         )
                 )
-                */
                 .info(new Info()
                         .title("UpGeek API")
                         .version("1.0.0")
@@ -45,10 +42,10 @@ public class OpenApiConfig {
                         .contact(new Contact()
                                 .name("Suporte UpGeek")
                                 .email("suporte@upgeek.com")
-                                .url("https://www.upgeek.com/contato"))
+                                .url("https://www.seusiteupgeek.com/contato"))
                         .license(new License()
-                                .name("MIT License")
-                                .url("https://opensource.org/licenses/MIT"))
+                                .name("GPL-3.0 license")
+                                .url("https://opensource.org/license/GPL-3.0"))
                 );
     }
 }

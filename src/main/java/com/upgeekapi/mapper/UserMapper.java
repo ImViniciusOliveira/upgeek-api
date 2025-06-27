@@ -22,7 +22,7 @@ public class UserMapper implements Mapper<User, UserAccountDTO> {
         String userTitle = "Colecionador Nível " + user.getGamificationLevel();
 
         return new UserAccountDTO(
-                user.getId().toString(),
+                user.getId(),
                 user.getEmail(),
                 user.getName(),
                 user.getGamificationLevel(),

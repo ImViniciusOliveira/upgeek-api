@@ -4,13 +4,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
  * Representa um usuário no sistema.
- * Esta é uma entidade JPA, mapeada para a tabela "users" no banco de dados.
- * A identidade do usuário é gerenciada internamente por um UUID, garantindo
- * desacoplamento de provedores de autenticação externos.
+ * Agora inclui um campo para a senha criptografada.
  */
 @Entity
 @Table(name = "users")
@@ -20,16 +21,17 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    // TODO: O email como identificador principal é uma solução temporária.
-    // Quando a autenticação for implementada, o identificador virá do token (ex: 'sub')
     @Column(unique = true, nullable = false)
     private String email;
 
     @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
+    private String password; // NOVO: Campo para armazenar a senha HASHED
 
     @Column(name = "level")
     private int gamificationLevel = 1;
@@ -37,14 +39,17 @@ public class User {
     @Column(name = "xp")
     private long experiencePoints = 0;
 
-    /**
-     * Construtor para facilitar a criação de novas instâncias de User com
-     * os dados essenciais para o registro inicial.
-     * @param email O email único do usuário, que serve como seu identificador de login TEMPORARIO.
-     * @param name O nome de exibição público do usuário.
-     */
-    public User(String email, String name) {
+    @ManyToMany(fetch = FetchType.EAGER) // EAGER para que as roles sejam carregadas junto com o usuário
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+
+    public User(String email, String name, String password) {
         this.email = email;
         this.name = name;
+        this.password = password;
     }
 }
