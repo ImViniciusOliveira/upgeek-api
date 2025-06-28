@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Implementação concreta do TokenService que usa a biblioteca java-jwt.
+ * Implementação concreta do {@link TokenService} que usa a biblioteca java-jwt.
+ * <p>
  * Esta é a ÚNICA classe em toda a aplicação que tem conhecimento sobre a biblioteca
  * específica de JWT, garantindo baixo acoplamento.
  */
@@ -36,8 +37,9 @@ public class JwtTokenServiceImpl implements TokenService {
     }
 
     /**
-     * O método @PostConstruct garante que o algoritmo e o verificador sejam
-     * inicializados uma única vez quando o serviço é criado, o que é mais performático.
+     * Inicializa os componentes criptográficos (algoritmo e verificador) uma única vez
+     * quando o serviço é criado. A anotação {@code @PostConstruct} garante que este
+     * método seja executado após a injeção de dependências, o que é mais performático.
      */
     @PostConstruct
     public void init() {
@@ -73,7 +75,7 @@ public class JwtTokenServiceImpl implements TokenService {
             return Optional.of(principal);
 
         } catch (JWTVerificationException exception) {
-            logger.warn("Validação do token falhou: {}", exception.getMessage());
+            logger.warn("Validação do token JWT falhou: {}", exception.getMessage());
             return Optional.empty();
         }
     }

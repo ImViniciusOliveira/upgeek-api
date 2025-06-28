@@ -5,15 +5,18 @@ import java.util.stream.Collectors;
 
 /**
  * Interface genérica para o padrão Mapper (ou Converter).
+ * <p>
  * Define um contrato padronizado para converter uma Entidade (E) em um DTO (D),
- * promovendo desacoplamento e reutilização de código.
- * @param <E> O tipo da Entidade (ex: User).
- * @param <D> O tipo do DTO (ex: UserAccountDTO).
+ * promovendo desacoplamento e reutilização de código em toda a aplicação.
+ *
+ * @param <E> O tipo da Entidade de origem (ex: User).
+ * @param <D> O tipo do DTO de destino (ex: UserAccountDTO).
  */
 public interface Mapper<E, D> {
 
     /**
      * Converte uma única entidade para seu DTO correspondente.
+     *
      * @param entity A entidade a ser convertida.
      * @return O DTO resultante.
      */
@@ -21,8 +24,11 @@ public interface Mapper<E, D> {
 
     /**
      * Implementação padrão para converter uma lista de entidades em uma lista de DTOs.
+     * <p>
      * Este método 'default' evita a repetição da lógica de streaming e coleta em cada
-     * implementação concreta do Mapper.
+     * implementação concreta do Mapper, aplicando o método {@code toDto(E)} a cada
+     * elemento da lista.
+     *
      * @param entityList A lista de entidades a ser convertida.
      * @return A lista de DTOs resultante.
      */

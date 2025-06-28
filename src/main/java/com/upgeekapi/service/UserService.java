@@ -1,46 +1,34 @@
 package com.upgeekapi.service;
 
-import com.upgeekapi.dto.request.CreateUserRequestDTO;
+import com.upgeekapi.dto.request.UpdateAccountRequestDTO;
 import com.upgeekapi.dto.response.UserAccountDTO;
-import java.util.List;
 
 /**
- * Interface que define o contrato para os serviços relacionados a usuários.
- * Desacopla a camada de controller da implementação da lógica de negócio.
+ * Interface que define o contrato para os serviços relacionados ao gerenciamento
+ * da conta do usuário.
  */
 public interface UserService {
 
     /**
-     * Encontra os dados de uma conta de usuário pelo seu email.
-     *
-     * @param email O endereço de email único associado ao usuário.
-     * @return Um {@link UserAccountDTO} contendo os dados públicos e de gamificação do usuário.
-     * @throws com.upgeekapi.exception.custom.ResourceNotFoundException se nenhum usuário for encontrado com o email fornecido.
+     * Encontra os dados de uma conta de usuário pelo seu ID interno.
+     * @param userId O ID único do usuário.
+     * @return Um DTO com os dados da conta do usuário.
+     * @throws com.upgeekapi.exception.custom.ResourceNotFoundException se o usuário não for encontrado.
      */
-    UserAccountDTO findUserAccountByEmail(String email);
+    UserAccountDTO findUserAccountById(Long userId);
 
     /**
-     * Retorna uma lista de todas as contas de usuário registradas.
-     * <p>
-     * <strong>Atenção:</strong> Em um ambiente de produção, este método deve ser substituído
-     * por uma versão paginada para evitar problemas de performance com um grande volume de dados.
-     *
-     * @return uma lista de {@link UserAccountDTO}. A lista estará vazia se não houver usuários.
+     * Atualiza os dados de um usuário existente.
+     * @param userId O ID do usuário a ser atualizado.
+     * @param request O DTO com as novas informações a serem aplicadas.
+     * @return O DTO do usuário com os dados atualizados.
      */
-    List<UserAccountDTO> findAllUsers();
+    UserAccountDTO updateUser(Long userId, UpdateAccountRequestDTO request);
 
     /**
-     * Cria um novo usuário no sistema.
-     * @param createUserRequestDTO Os dados para a criação do novo usuário.
-     * @return um {@link UserAccountDTO} representando o usuário recém-criado.
-     * @throws com.upgeekapi.exception.custom.DataConflictException se o email fornecido já estiver em uso.
+     * Deleta a conta de um usuário com base no seu ID.
+     * @param userId O ID do usuário a ser deletado.
+     * @throws com.upgeekapi.exception.custom.ResourceNotFoundException se o usuário não for encontrado.
      */
-    UserAccountDTO createUser(CreateUserRequestDTO createUserRequestDTO);
-
-    /**
-     * Deleta um usuário do sistema com base no seu email.
-     * @param email O email do usuário a ser deletado.
-     * @throws com.upgeekapi.exception.custom.ResourceNotFoundException se nenhum usuário for encontrado com o email fornecido.
-     */
-    void deleteUserByEmail(String email);
+    void deleteUserById(Long userId);
 }

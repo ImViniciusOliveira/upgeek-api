@@ -12,21 +12,17 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Configuração central para a documentação da API via Springdoc OpenAPI 3.
- * Define as informações gerais e o esquema de segurança para a API.
+ * Define as informações gerais da API e o esquema de segurança JWT para a interface do Swagger.
  */
 @Configuration
 public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        // O nome do esquema de segurança para ser usado na documentação.
         final String securitySchemeName = "bearerAuth";
 
         return new OpenAPI()
-                // **AGORA ATIVADO:** Adiciona o botão "Authorize" global na UI do Swagger.
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
-
-                // **AGORA ATIVADO:** Define COMO a segurança "bearerAuth" funciona.
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()
                                 .name(securitySchemeName)
@@ -42,7 +38,7 @@ public class OpenApiConfig {
                         .contact(new Contact()
                                 .name("Suporte UpGeek")
                                 .email("suporte@upgeek.com")
-                                .url("https://www.seusiteupgeek.com/contato"))
+                                .url("https://www.upgeek.com/contato"))
                         .license(new License()
                                 .name("GPL-3.0 license")
                                 .url("https://opensource.org/license/GPL-3.0"))

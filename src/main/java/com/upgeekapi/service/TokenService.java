@@ -4,7 +4,7 @@ import com.upgeekapi.core.security.AuthPrincipal;
 import java.util.Optional;
 
 /**
- * Interface que define o contrato para o nosso serviço de gerenciamento de tokens.
+ * Interface que define o contrato para o serviço de gerenciamento de tokens.
  * Atua como uma FACADE (Padrão GoF), simplificando a interação com o subsistema
  * complexo de criação e validação de JWTs. O resto da aplicação só interage com esta interface.
  */

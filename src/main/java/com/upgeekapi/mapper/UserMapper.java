@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 /**
  * Implementação concreta do {@link Mapper} para converter a entidade {@link User}
  * em um {@link UserAccountDTO}.
+ * <p>
  * A anotação @Component permite que o Spring gerencie esta classe como um Bean e a
  * injete em outros componentes, como serviços.
  */
@@ -19,12 +20,14 @@ public class UserMapper implements Mapper<User, UserAccountDTO> {
             return null;
         }
 
+        // A lógica para o título pode ser enriquecida futuramente pelo GamificationService.
         String userTitle = "Colecionador Nível " + user.getGamificationLevel();
 
         return new UserAccountDTO(
                 user.getId(),
-                user.getEmail(),
+                user.getUsername(),
                 user.getName(),
+                user.getEmail(),
                 user.getGamificationLevel(),
                 user.getExperiencePoints(),
                 userTitle

@@ -17,7 +17,9 @@ import java.util.Optional;
 
 /**
  * Filtro que intercepta todas as requisições para validar o token JWT.
- * Ele é o componente que integra nosso sistema de token com o Spring Security.
+ * <p>
+ * Ele é o componente que integra nosso sistema de token customizado com o Spring Security,
+ * sendo responsável por extrair o token, validá-lo e popular o SecurityContext se o token for válido.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -30,6 +32,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.tokenService = tokenService;
     }
 
+    /**
+     * O coração do filtro. Este método é executado para cada requisição.
+     * Ele extrai o token, o valida e, se bem-sucedido, configura a autenticação
+     * no contexto de segurança do Spring para a requisição atual.
+     */
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
@@ -39,7 +46,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         getTokenFromHeader(request)
                 .flatMap(tokenService::validateToken)
                 .ifPresent(principal -> {
-                    // Usuário válido! Colocá-lo no contexto de segurança do Spring.
                     var authorities = principal.roles().stream()
                             .map(SimpleGrantedAuthority::new)
                             .toList();
@@ -49,10 +55,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 });
 
-        // Continua o fluxo da requisição. A decisão de barrar ou não é do SecurityConfig.
+        // Passa a requisição para o próximo filtro na cadeia.
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Método auxiliar privado para extrair o token JWT do cabeçalho 'Authorization'.
+     *
+     * @param request A requisição HTTP recebida.
+     * @return um {@link Optional} contendo a string do token puro (sem o prefixo "Bearer "),
+     * ou um Optional vazio se o cabeçalho estiver ausente ou malformado.
+     */
     private Optional<String> getTokenFromHeader(HttpServletRequest request) {
         return Optional.ofNullable(request.getHeader(HEADER_AUTHORIZATION))
                 .filter(header -> header.startsWith(TOKEN_PREFIX))

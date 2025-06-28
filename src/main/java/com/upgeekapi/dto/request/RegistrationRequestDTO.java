@@ -3,11 +3,11 @@ package com.upgeekapi.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * DTO (Data Transfer Object) que representa os dados necessários para criar uma nova conta de usuário.
+ * DTO (Data Transfer Object) que representa os dados necessários para registrar uma nova conta de usuário.
  * Usado como o corpo da requisição (payload) no endpoint de registro.
  */
-@Schema(description = "Dados necessários para registrar um novo usuário.")
-public record CreateUserRequestDTO(
+@Schema(description = "Dados necessários para o registro de um novo usuário.")
+public record RegistrationRequestDTO(
 
         @Schema(description = "Nome de usuário único na plataforma (sem espaços ou caracteres especiais).",
                 example = "kain_renegade",

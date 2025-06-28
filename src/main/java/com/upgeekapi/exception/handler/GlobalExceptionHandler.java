@@ -1,6 +1,7 @@
 package com.upgeekapi.exception.handler;
 
 import com.upgeekapi.dto.response.ErrorDTO;
+import com.upgeekapi.exception.custom.AuthenticationException;
 import com.upgeekapi.exception.custom.BusinessRuleException;
 import com.upgeekapi.exception.custom.DataConflictException;
 import com.upgeekapi.exception.custom.ResourceNotFoundException;
@@ -46,6 +47,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataConflictException.class)
     public ResponseEntity<ErrorDTO> handleDataConflictException(DataConflictException ex) {
         return buildErrorResponse(ex, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * Captura a {@link AuthenticationException} e a traduz para uma resposta HTTP 401 Unauthorized.
+     * @param ex A exceção capturada.
+     * @return Um ResponseEntity com o status 401 e um corpo de erro padronizado.
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
+        return buildErrorResponse(ex, HttpStatus.UNAUTHORIZED);
     }
 
     /**
