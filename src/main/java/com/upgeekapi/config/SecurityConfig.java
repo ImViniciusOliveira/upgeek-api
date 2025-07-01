@@ -36,9 +36,7 @@ public class SecurityConfig {
         http
                 // Desabilita CSRF, pois a API é stateless.
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // A CORREÇÃO: Desabilita o formulário de login e a autenticação básica padrão do Spring.
-                // Isso remove a senha gerada automaticamente no console.
+                // Desabilita o formulário de login e a autenticação básica padrão do Spring.
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
 
@@ -54,7 +52,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // Endpoints públicos
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        // Endpoints de escrita de produtos para ADMINS
+                        .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
 
                         // Endpoints que exigem autenticação e a role "USER"
                         .requestMatchers("/api/account/**").hasRole("USER")

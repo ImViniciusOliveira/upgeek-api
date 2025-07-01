@@ -2,7 +2,7 @@ package com.upgeekapi.service;
 
 import com.upgeekapi.dto.request.LoginRequestDTO;
 import com.upgeekapi.dto.request.RegistrationRequestDTO;
-import com.upgeekapi.dto.response.LoginResponseDTO;
+import com.upgeekapi.dto.response.LoginDTO;
 
 /**
  * Interface que define o contrato para os serviços de autenticação.
@@ -14,10 +14,10 @@ public interface AuthService {
     /**
      * Autentica um usuário com base nas credenciais e gera um token JWT.
      * @param request DTO contendo o email e a senha.
-     * @return um {@link LoginResponseDTO} contendo o token JWT.
+     * @return um {@link LoginDTO} contendo o token JWT.
      * @throws com.upgeekapi.exception.custom.AuthenticationException se as credenciais forem inválidas.
      */
-    LoginResponseDTO login(LoginRequestDTO request);
+    LoginDTO login(LoginRequestDTO request);
 
     /**
      * Registra um novo usuário no sistema.

@@ -1,6 +1,7 @@
 package com.upgeekapi.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * DTO que representa os dados de credenciais para uma tentativa de login.
@@ -8,14 +9,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
  */
 @Schema(description = "Credenciais necessárias para autenticação.")
 public record LoginRequestDTO(
-
-        @Schema(description = "O email do usuário para autenticação.",
-                example = "kain.renegade@duum.net",
-                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "O email é obrigatório.")
+        @Schema(description = "O email do usuário para autenticação.", example = "kain.renegade@duum.net", requiredMode = Schema.RequiredMode.REQUIRED)
         String email,
 
-        @Schema(description = "A senha associada à conta do usuário.",
-                example = "darkligthside123",
-                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "A senha é obrigatória.")
+        @Schema(description = "A senha associada à conta do usuário.", example = "darkligthside123", requiredMode = Schema.RequiredMode.REQUIRED)
         String password
 ) {}

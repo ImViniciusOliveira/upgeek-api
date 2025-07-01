@@ -7,10 +7,13 @@ import com.upgeekapi.exception.custom.DataConflictException;
 import com.upgeekapi.exception.custom.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 /**
  * Handler centralizado que captura exceções customizadas lançadas em toda a
@@ -57,6 +60,28 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorDTO> handleAuthenticationException(AuthenticationException ex) {
         return buildErrorResponse(ex, HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Captura a exceção MethodArgumentNotValidException, lançada pelo Spring
+     * quando um objeto anotado com @Valid falha na validação.
+     * @param ex A exceção contendo todos os erros de validação.
+     * @return Um ResponseEntity com o status 400 e uma mensagem de erro clara e formatada.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorDTO> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String errors = ex.getBindingResult().getAllErrors().stream()
+                .map(error -> {
+                    String fieldName = ((FieldError) error).getField();
+                    String errorMessage = error.getDefaultMessage();
+                    return "'" + fieldName + "': " + errorMessage;
+                })
+                .collect(Collectors.joining("; "));
+
+        return buildErrorResponse(
+                new RuntimeException("Erro de validação: " + errors),
+                HttpStatus.BAD_REQUEST
+        );
     }
 
     /**

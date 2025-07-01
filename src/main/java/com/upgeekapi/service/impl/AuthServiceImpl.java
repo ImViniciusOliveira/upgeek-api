@@ -3,7 +3,7 @@ package com.upgeekapi.service.impl;
 import com.upgeekapi.core.security.AuthPrincipal;
 import com.upgeekapi.dto.request.LoginRequestDTO;
 import com.upgeekapi.dto.request.RegistrationRequestDTO;
-import com.upgeekapi.dto.response.LoginResponseDTO;
+import com.upgeekapi.dto.response.LoginDTO;
 import com.upgeekapi.entity.Role;
 import com.upgeekapi.entity.User;
 import com.upgeekapi.exception.custom.AuthenticationException;
@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponseDTO login(LoginRequestDTO request) {
+    public LoginDTO login(LoginRequestDTO request) {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new AuthenticationException("Credenciais inválidas."));
 
@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         String token = tokenService.generateToken(principal);
-        return new LoginResponseDTO(token);
+        return new LoginDTO(token);
     }
 
     @Override

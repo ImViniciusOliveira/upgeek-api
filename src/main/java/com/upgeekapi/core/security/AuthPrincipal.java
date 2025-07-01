@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * Representa um principal de autenticação de forma agnóstica de framework.
- * Este é o nosso modelo interno para um usuário logado. Ele não tem nenhuma dependência
+ * Este é o modelo interno para um usuário logado. Ele não tem nenhuma dependência
  * com o Spring Security ou com a biblioteca JWT, garantindo total desacoplamento e
  * permitindo que a camada de negócio interaja com um objeto de domínio limpo.
  *

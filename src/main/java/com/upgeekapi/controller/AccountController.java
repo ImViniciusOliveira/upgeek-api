@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -49,7 +50,7 @@ public class AccountController {
     })
     public ResponseEntity<UserAccountDTO> updateMyAccount(
             @AuthenticationPrincipal AuthPrincipal principal,
-            @RequestBody UpdateAccountRequestDTO updateRequest) {
+            @Valid @RequestBody UpdateAccountRequestDTO updateRequest) {
 
         UserAccountDTO updatedUser = userService.updateUser(principal.userId(), updateRequest);
         return ResponseEntity.ok(updatedUser);

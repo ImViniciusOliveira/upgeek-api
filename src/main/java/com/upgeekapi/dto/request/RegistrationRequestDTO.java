@@ -1,36 +1,47 @@
 package com.upgeekapi.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 /**
- * DTO (Data Transfer Object) que representa os dados necessários para registrar uma nova conta de usuário.
- * Usado como o corpo da requisição (payload) no endpoint de registro.
+ * DTO que representa os dados para registrar um novo usuário, com regras de validação robustas e granulares.
  */
 @Schema(description = "Dados necessários para o registro de um novo usuário.")
 public record RegistrationRequestDTO(
 
-        @Schema(description = "Nome de usuário único na plataforma (sem espaços ou caracteres especiais).",
-                example = "kain_renegade",
-                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "O nome de usuário é obrigatório.")
+        @Size(min = 3, max = 16, message = "O nome de usuário deve ter entre 3 e 16 caracteres.")
+        @Pattern(regexp = "^[a-zA-Z0-9]+(?: [a-zA-Z0-9]+)*$", message = "O nome de usuário deve conter apenas letras e números, e não pode começar ou terminar com espaços.")
+        @Schema(description = "Nome de usuário único na plataforma.", example = "Kain Renegade", requiredMode = Schema.RequiredMode.REQUIRED)
         String username,
 
-        @Schema(description = "Nome completo da pessoa, para fins de faturamento e envio.",
-                example = "Kain",
-                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "O nome completo é obrigatório.")
+        @Size(max = 100, message = "O nome completo não pode exceder 100 caracteres.")
+        @Pattern(regexp = "^[a-zA-Z]+(?: [a-zA-Z]+)*$", message = "O nome completo deve conter apenas letras e espaços, e não pode começar ou terminar com espaços.")
+        @Schema(description = "Nome completo da pessoa.", example = "Kain", requiredMode = Schema.RequiredMode.REQUIRED)
         String name,
 
-        @Schema(description = "Email único para login e contato.",
-                example = "kain.renegade@duum.net",
-                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "O email é obrigatório.")
+        @Email(message = "O formato do email é inválido.")
+        @Size(max = 255, message = "O email não pode exceder 255 caracteres.")
+        @Schema(description = "Email único para login e contato.", example = "kain.renegade@duum.net", requiredMode = Schema.RequiredMode.REQUIRED)
         String email,
 
-        @Schema(description = "CPF do usuário (apenas números), necessário para transações.",
-                example = "98765432100",
-                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "O CPF é obrigatório.")
+        @Size(min = 11, max = 11, message = "O CPF deve ter exatamente 11 dígitos.")
+        @Pattern(regexp = "^[0-9]+$", message = "O CPF deve conter apenas números.")
+        @Schema(description = "CPF do usuário (apenas números).", example = "98765432100", requiredMode = Schema.RequiredMode.REQUIRED)
         String cpf,
 
-        @Schema(description = "A senha para a nova conta. Deve atender aos requisitos de segurança.",
-                example = "darkligthside123",
-                requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "A senha é obrigatória.")
+        @Size(min = 12, max = 72, message = "A senha deve ter entre 12 e 72 caracteres.")
+        @Pattern(regexp = ".*[a-z].*", message = "A senha deve conter pelo menos uma letra minúscula.")
+        @Pattern(regexp = ".*[A-Z].*", message = "A senha deve conter pelo menos uma letra maiúscula.")
+        @Pattern(regexp = ".*\\d.*", message = "A senha deve conter pelo menos um número.")
+        @Pattern(regexp = ".*[@$!%*?&#._-].*", message = "A senha deve conter pelo menos um caractere especial (@$!%*?&#._-).")
+        @Schema(description = "A senha para a nova conta.", example = "DarkLight#123.456", requiredMode = Schema.RequiredMode.REQUIRED)
         String password
 ) {}

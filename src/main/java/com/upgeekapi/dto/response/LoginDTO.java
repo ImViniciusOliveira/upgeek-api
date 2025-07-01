@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * autorizar requisições subsequentes.
  */
 @Schema(description = "Resposta de uma autenticação bem-sucedida, contendo o token de acesso.")
-public record LoginResponseDTO(
+public record LoginDTO(
 
         @Schema(
                 description = "O token de acesso JWT (Bearer Token) que deve ser enviado no cabeçalho 'Authorization' em requisições protegidas.",
