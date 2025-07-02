@@ -46,7 +46,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                 Instant.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 "Unauthorized",
-                "Acesso não autorizado. Autenticação via Bearer Token é necessária."
+                "Acesso não autorizado. As credenciais de autenticação não foram fornecidas ou são inválidas."
         );
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 /**
@@ -68,20 +69,25 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.findByEmail(request.email()).isPresent()) {
             throw new DataConflictException("O email '" + request.email() + "' já está em uso.");
         }
-        if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new DataConflictException("O nome de usuário '" + request.username() + "' já está em uso.");
-        }
         if (userRepository.findByCpf(request.cpf()).isPresent()) {
             throw new DataConflictException("O CPF fornecido já está cadastrado.");
         }
 
+        // Lógica para gerar e validar um username único padrao de acordo com o email antes do @
+        String baseUsername = request.email().split("@")[0].replaceAll("[^a-zA-Z0-9_]", "");
+        String finalUsername = baseUsername;
+        while (userRepository.findByUsername(finalUsername).isPresent()) {
+            int randomNumber = ThreadLocalRandom.current().nextInt(100, 1000);
+            finalUsername = baseUsername + randomNumber;
+        }
+
         Role defaultRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new IllegalStateException("A role padrão ROLE_USER não foi encontrada no banco de dados."));
+                .orElseThrow(() -> new IllegalStateException("A role padrão ROLE_USER não foi encontrada."));
 
         String hashedPassword = passwordEncoder.encode(request.password());
 
         User newUser = new User(
-                request.username(),
+                finalUsername,
                 request.email(),
                 request.name(),
                 request.cpf(),

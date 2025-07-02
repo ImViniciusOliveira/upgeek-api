@@ -12,16 +12,10 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Dados necessários para o registro de um novo usuário.")
 public record RegistrationRequestDTO(
 
-        @NotBlank(message = "O nome de usuário é obrigatório.")
-        @Size(min = 3, max = 16, message = "O nome de usuário deve ter entre 3 e 16 caracteres.")
-        @Pattern(regexp = "^[a-zA-Z0-9]+(?: [a-zA-Z0-9]+)*$", message = "O nome de usuário deve conter apenas letras e números, e não pode começar ou terminar com espaços.")
-        @Schema(description = "Nome de usuário único na plataforma.", example = "Kain Renegade", requiredMode = Schema.RequiredMode.REQUIRED)
-        String username,
-
         @NotBlank(message = "O nome completo é obrigatório.")
         @Size(max = 100, message = "O nome completo não pode exceder 100 caracteres.")
-        @Pattern(regexp = "^[a-zA-Z]+(?: [a-zA-Z]+)*$", message = "O nome completo deve conter apenas letras e espaços, e não pode começar ou terminar com espaços.")
-        @Schema(description = "Nome completo da pessoa.", example = "Kain", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Pattern(regexp = "^[\\p{L} .'-]+$", message = "O nome completo contém caracteres inválidos.")
+        @Schema(description = "Nome completo da pessoa.", example = "João Conceição", requiredMode = Schema.RequiredMode.REQUIRED)
         String name,
 
         @NotBlank(message = "O email é obrigatório.")
@@ -41,7 +35,7 @@ public record RegistrationRequestDTO(
         @Pattern(regexp = ".*[a-z].*", message = "A senha deve conter pelo menos uma letra minúscula.")
         @Pattern(regexp = ".*[A-Z].*", message = "A senha deve conter pelo menos uma letra maiúscula.")
         @Pattern(regexp = ".*\\d.*", message = "A senha deve conter pelo menos um número.")
-        @Pattern(regexp = ".*[@$!%*?&#._-].*", message = "A senha deve conter pelo menos um caractere especial (@$!%*?&#._-).")
+        @Pattern(regexp = ".*[@$!%*?&#._-].*", message = "A senha deve conter pelo menos um caractere especial.")
         @Schema(description = "A senha para a nova conta.", example = "DarkLight#123.456", requiredMode = Schema.RequiredMode.REQUIRED)
         String password
 ) {}

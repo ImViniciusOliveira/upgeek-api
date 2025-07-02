@@ -1,5 +1,6 @@
 package com.upgeekapi.config;
 
+import com.upgeekapi.security.CustomAccessDeniedHandler;
 import com.upgeekapi.security.CustomAuthenticationEntryPoint;
 import com.upgeekapi.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +33,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
         http
                 // Desabilita CSRF, pois a API é stateless.
                 .csrf(AbstractHttpConfigurer::disable)
@@ -43,9 +44,10 @@ public class SecurityConfig {
                 // Define a política de sessão como STATELESS, essencial para APIs REST com JWT.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Configura o handler para erros de autenticação (401).
+                // Configura o handler para erros de autenticação (401) e (403).
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
 
                 // Define as regras de autorização para cada endpoint.
@@ -59,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // Endpoints que exigem autenticação e a role "USER"
                         .requestMatchers("/api/account/**").hasRole("USER")

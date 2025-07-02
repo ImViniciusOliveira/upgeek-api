@@ -9,8 +9,8 @@ import com.upgeekapi.config.JwtProperties;
 import com.upgeekapi.core.security.AuthPrincipal;
 import com.upgeekapi.service.TokenService;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -24,10 +24,10 @@ import java.util.Optional;
  * Esta é a ÚNICA classe em toda a aplicação que tem conhecimento sobre a biblioteca
  * específica de JWT, garantindo baixo acoplamento.
  */
+@Slf4j
 @Service
 public class JwtTokenServiceImpl implements TokenService {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtTokenServiceImpl.class);
     private final JwtProperties jwtProperties;
     private Algorithm algorithm;
     private JWTVerifier verifier;
@@ -75,7 +75,7 @@ public class JwtTokenServiceImpl implements TokenService {
             return Optional.of(principal);
 
         } catch (JWTVerificationException exception) {
-            logger.warn("Validação do token JWT falhou: {}", exception.getMessage());
+            log.warn("Validação do token JWT falhou: {}", exception.getMessage());
             return Optional.empty();
         }
     }

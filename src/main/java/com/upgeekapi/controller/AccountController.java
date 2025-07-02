@@ -67,4 +67,5 @@ public class AccountController {
         userService.deleteUserById(principal.userId());
         return ResponseEntity.noContent().build();
     }
+
 }

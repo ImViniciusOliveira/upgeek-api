@@ -5,12 +5,14 @@ import com.upgeekapi.exception.custom.AuthenticationException;
 import com.upgeekapi.exception.custom.BusinessRuleException;
 import com.upgeekapi.exception.custom.DataConflictException;
 import com.upgeekapi.exception.custom.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 import java.util.stream.Collectors;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
  * Handler centralizado que captura exceções customizadas lançadas em toda a
  * aplicação e as converte em respostas HTTP padronizadas e consistentes.
  */
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -81,6 +84,39 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(
                 new RuntimeException("Erro de validação: " + errors),
                 HttpStatus.BAD_REQUEST
+        );
+    }
+
+    /**
+     * Handler específico para rotas não encontradas (erros 404).
+     * Este método captura a exceção do Spring para URLs que não correspondem a nenhum endpoint.
+     * @param ex A exceção NoResourceFoundException capturada.
+     * @return Um ResponseEntity com o status 404 e uma mensagem clara.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorDTO> handleNoResourceFound(NoResourceFoundException ex) {
+        return buildErrorResponse(
+                new RuntimeException("O recurso solicitado não foi encontrado: " + ex.getResourcePath()),
+                HttpStatus.NOT_FOUND
+        );
+    }
+
+    /**
+     * Handler "guarda-chuva" para exceções inesperadas (erros 500).
+     * Este é o último handler a ser verificado. Ele captura qualquer exceção que não
+     * foi tratada pelos handlers mais específicos acima.
+     * @param ex A exceção genérica capturada.
+     * @return Um ResponseEntity com o status 500 e uma mensagem de erro genérica.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorDTO> handleGenericException(Exception ex) {
+        // Loga o erro completo no console para que os desenvolvedores possam investigar.
+        log.error("Ocorreu um erro inesperado no servidor.", ex);
+
+        // Retorna uma mensagem genérica e segura para o cliente.
+        return buildErrorResponse(
+                new RuntimeException("Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."),
+                HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
 
