@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -33,6 +35,23 @@ public class ProductController {
     @Operation(summary = "Listar produtos em promoção", description = "Retorna uma lista de todos os produtos atualmente com desconto.")
     public ResponseEntity<List<ProductDTO>> getProductsOnSale() {
         return ResponseEntity.ok(productService.getProductsOnSale());
+    }
+
+    @GetMapping("/tag/{tag}")
+    @Operation(summary = "Listar produtos por uma tag/coleção específica")
+    public ResponseEntity<List<ProductDTO>> getProductsByTag(@PathVariable String tag) {
+        return ResponseEntity.ok(productService.getProductsByTag(tag));
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Buscar produtos com filtros dinâmicos")
+    public ResponseEntity<List<ProductDTO>> searchProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice) {
+
+        List<ProductDTO> products = productService.searchProducts(name, minPrice, maxPrice);
+        return ResponseEntity.ok(products);
     }
 
     @PostMapping

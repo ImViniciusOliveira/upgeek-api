@@ -2,7 +2,6 @@ package com.upgeekapi.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.upgeekapi.dto.response.ErrorDTO;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -33,7 +32,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(@NonNull HttpServletRequest request,
                        @NonNull HttpServletResponse response,
                        @NonNull AccessDeniedException accessDeniedException)
-            throws IOException, ServletException {
+            throws IOException {
 
         ErrorDTO errorDto = new ErrorDTO(
                 Instant.now(),

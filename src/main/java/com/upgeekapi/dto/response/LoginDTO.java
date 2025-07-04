@@ -12,7 +12,7 @@ public record LoginDTO(
 
         @Schema(
                 description = "O token de acesso JWT (Bearer Token) que deve ser enviado no cabeçalho 'Authorization' em requisições protegidas.",
-                example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImVtYWlsIjoia2Fpbi5yZW5lZ2FkZUBkdXVtLm5ldCIsImlhdCI6MTcxOTk3..."
         )
         String token
 ) {}

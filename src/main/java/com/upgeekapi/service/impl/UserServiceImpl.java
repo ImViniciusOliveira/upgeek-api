@@ -8,6 +8,7 @@ import com.upgeekapi.exception.custom.ResourceNotFoundException;
 import com.upgeekapi.mapper.UserMapper;
 import com.upgeekapi.repository.UserRepository;
 import com.upgeekapi.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,15 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
  * Contém a lógica de negócio para as operações de gerenciamento da conta do usuário autenticado.
  */
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-    }
 
     @Override
     @Transactional(readOnly = true)

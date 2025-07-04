@@ -2,35 +2,37 @@ package com.upgeekapi.mapper;
 
 import com.upgeekapi.dto.response.UserAccountDTO;
 import com.upgeekapi.entity.User;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import java.util.List;
 
 /**
- * Implementação concreta do {@link Mapper} para converter a entidade {@link User}
+ * Interface gerenciada pelo MapStruct para converter a entidade {@link User}
  * em um {@link UserAccountDTO}.
  * <p>
- * A anotação @Component permite que o Spring gerencie esta classe como um Bean e a
- * injete em outros componentes, como serviços.
+ * A implementação desta interface é gerada automaticamente em tempo de compilação,
+ * eliminando a necessidade de código manual e garantindo performance e segurança.
  */
-@Component
-public class UserMapper implements Mapper<User, UserAccountDTO> {
+@Mapper(componentModel = "spring") // Diz ao MapStruct para gerar um Bean do Spring
+public interface UserMapper {
 
-    @Override
-    public UserAccountDTO toDto(User user) {
-        if (user == null) {
-            return null;
-        }
+    /**
+     * Mapeia um User para um UserAccountDTO.
+     * O MapStruct mapeia campos com o mesmo nome automaticamente (name, username, email).
+     * Os campos com nomes diferentes ou com lógica customizada precisam de regras.
+     *
+     * @param user A entidade a ser convertida.
+     * @return O DTO correspondente.
+     */
+    @Mapping(source = "gamificationLevel", target = "level")
+    @Mapping(source = "experiencePoints", target = "xp")
+    @Mapping(target = "title", expression = "java(\"Colecionador Nível \" + user.getGamificationLevel())")
+    UserAccountDTO toDto(User user);
 
-        // A lógica para o título pode ser enriquecida futuramente pelo GamificationService.
-        String userTitle = "Colecionador Nível " + user.getGamificationLevel();
-
-        return new UserAccountDTO(
-                user.getId(),
-                user.getUsername(),
-                user.getName(),
-                user.getEmail(),
-                user.getGamificationLevel(),
-                user.getExperiencePoints(),
-                userTitle
-        );
-    }
+    /**
+     * Mapeia uma lista de Users para uma lista de UserAccountDTOs.
+     * O MapStruct gera automaticamente o loop para nós.
+     */
+    List<UserAccountDTO> toDto(List<User> users);
 }

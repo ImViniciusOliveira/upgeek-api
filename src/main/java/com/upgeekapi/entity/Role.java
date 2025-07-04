@@ -1,9 +1,7 @@
 package com.upgeekapi.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * Representa uma permissão ou papel de autorização no sistema (ex: ROLE_USER, ROLE_ADMIN).
@@ -15,6 +13,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(of = "id")
 public class Role {
 
     @Id
@@ -23,12 +24,4 @@ public class Role {
 
     @Column(length = 20, unique = true, nullable = false)
     private String name;
-
-    /**
-     * Construtor para facilitar a criação de novas instâncias de Role.
-     * @param name O nome da role (ex: "ROLE_USER").
-     */
-    public Role(String name) {
-        this.name = name;
-    }
 }

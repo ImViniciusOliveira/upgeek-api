@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -66,25 +67,29 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Captura a exceção MethodArgumentNotValidException, lançada pelo Spring
-     * quando um objeto anotado com @Valid falha na validação.
+     * Captura a exceção MethodArgumentNotValidException e a transforma em uma
+     * resposta estruturada, mapeando cada campo ao seu erro específico.
      * @param ex A exceção contendo todos os erros de validação.
-     * @return Um ResponseEntity com o status 400 e uma mensagem de erro clara e formatada.
+     * @return Um ResponseEntity com status 400 e um corpo de erro estruturado.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDTO> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        String errors = ex.getBindingResult().getAllErrors().stream()
-                .map(error -> {
-                    String fieldName = ((FieldError) error).getField();
-                    String errorMessage = error.getDefaultMessage();
-                    return "'" + fieldName + "': " + errorMessage;
-                })
-                .collect(Collectors.joining("; "));
+        Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        fieldError -> fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "Erro de validação não especificado",
+                        (existingValue, newValue) -> existingValue
+                ));
 
-        return buildErrorResponse(
-                new RuntimeException("Erro de validação: " + errors),
-                HttpStatus.BAD_REQUEST
+        ErrorDTO errorDto = new ErrorDTO(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                "Um ou mais campos falharam na validação.",
+                fieldErrors
         );
+
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 
     /**

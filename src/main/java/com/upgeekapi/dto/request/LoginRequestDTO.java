@@ -9,11 +9,16 @@ import jakarta.validation.constraints.NotBlank;
  */
 @Schema(description = "Credenciais necessárias para autenticação.")
 public record LoginRequestDTO(
+
         @NotBlank(message = "O email é obrigatório.")
-        @Schema(description = "O email do usuário para autenticação.", example = "kain.renegade@duum.net", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "O email do usuário para autenticação.",
+                example = "kain.admin@upgeek.com",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         String email,
 
         @NotBlank(message = "A senha é obrigatória.")
-        @Schema(description = "A senha associada à conta do usuário.", example = "darkligthside123", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "A senha associada à conta do usuário.",
+                example = "AdminLegacy#7890",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         String password
 ) {}

@@ -2,6 +2,8 @@ package com.upgeekapi.service;
 
 import com.upgeekapi.dto.request.ProductRequestDTO;
 import com.upgeekapi.dto.response.ProductDTO;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -13,4 +15,7 @@ public interface ProductService {
     ProductDTO createProduct(ProductRequestDTO request);
     ProductDTO updateProduct(Long productId, ProductRequestDTO request);
     void deleteProduct(Long productId);
+
+    List<ProductDTO> searchProducts(String name, BigDecimal minPrice, BigDecimal maxPrice);
+    List<ProductDTO> getProductsByTag(String tag);
 }

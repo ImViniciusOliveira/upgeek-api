@@ -9,8 +9,8 @@ import com.upgeekapi.config.JwtProperties;
 import com.upgeekapi.core.security.AuthPrincipal;
 import com.upgeekapi.service.TokenService;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor; // Importe a anotação
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -26,15 +26,13 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class JwtTokenServiceImpl implements TokenService {
 
     private final JwtProperties jwtProperties;
+
     private Algorithm algorithm;
     private JWTVerifier verifier;
-
-    public JwtTokenServiceImpl(JwtProperties jwtProperties) {
-        this.jwtProperties = jwtProperties;
-    }
 
     /**
      * Inicializa os componentes criptográficos (algoritmo e verificador) uma única vez
@@ -55,7 +53,6 @@ public class JwtTokenServiceImpl implements TokenService {
         return JWT.create()
                 .withIssuer(jwtProperties.issuer())
                 .withSubject(String.valueOf(principal.userId()))
-                .withClaim("email", principal.email())
                 .withClaim("roles", principal.roles())
                 .withIssuedAt(now)
                 .withExpiresAt(now.plus(jwtProperties.expirationHours(), ChronoUnit.HOURS))
@@ -68,13 +65,11 @@ public class JwtTokenServiceImpl implements TokenService {
             DecodedJWT decodedJWT = verifier.verify(token);
 
             Long userId = Long.parseLong(decodedJWT.getSubject());
-            String email = decodedJWT.getClaim("email").asString();
             List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
 
-            AuthPrincipal principal = new AuthPrincipal(userId, email, roles);
-            return Optional.of(principal);
+            return Optional.of(new AuthPrincipal(userId, roles));
 
-        } catch (JWTVerificationException exception) {
+        } catch (JWTVerificationException | NumberFormatException exception) {
             log.warn("Validação do token JWT falhou: {}", exception.getMessage());
             return Optional.empty();
         }

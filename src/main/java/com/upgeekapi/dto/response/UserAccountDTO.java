@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * DTO que representa os dados públicos e de gamificação de uma conta de usuário.
- * Usado para exibir informações de perfil no frontend, como na página de conta ou na navbar.
+ * Usado para exibir informações de perfil no frontend.
  */
 @Schema(description = "Dados detalhados da conta de um usuário para exibição.")
 public record UserAccountDTO(

@@ -1,7 +1,7 @@
 package com.upgeekapi.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-//import org.springframework.context.annotation.Configuration; //ainda n consertei
+//import org.springframework.context.annotation.Configuration; //ainda n concertei
 
 /**
  * Mapeia as configurações de JWT do arquivo 'application.properties' para um objeto Java imutável.

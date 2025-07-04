@@ -9,12 +9,10 @@ import java.util.List;
  * permitindo que a camada de negócio interaja com um objeto de domínio limpo.
  *
  * @param userId O ID único (Long) do nosso usuário interno, vindo da entidade User.
- * @param email O email do usuário, usado para identificação e comunicação.
  * @param roles As permissões/papéis do usuário (ex: "ROLE_USER", "ROLE_ADMIN"),
  * usadas pelo Spring Security para controle de acesso.
  */
 public record AuthPrincipal(
         Long userId,
-        String email,
         List<String> roles
 ) {}

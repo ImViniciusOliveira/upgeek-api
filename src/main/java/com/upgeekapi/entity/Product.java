@@ -1,11 +1,11 @@
 package com.upgeekapi.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 import java.math.BigDecimal;
-import java.util.Objects;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Representa um produto colecionável no e-commerce UpGeek.
@@ -16,6 +16,9 @@ import java.util.Objects;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(of = "id")
 public class Product {
 
     @Id
@@ -35,6 +38,7 @@ public class Product {
     private BigDecimal discountPrice;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean onSale = false;
 
     @Column(nullable = false)
@@ -46,25 +50,9 @@ public class Product {
     @Column(nullable = false)
     private int stockQuantity;
 
-    public Product(String name, String description, BigDecimal originalPrice, Long xp, String imageUrl, int stockQuantity) {
-        this.name = name;
-        this.description = description;
-        this.originalPrice = originalPrice;
-        this.xp = xp;
-        this.imageUrl = imageUrl;
-        this.stockQuantity = stockQuantity;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Product product = (Product) o;
-        return id != null && id.equals(product.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "product_tags", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "tag")
+    @Builder.Default
+    private Set<String> tags = new HashSet<>();
 }

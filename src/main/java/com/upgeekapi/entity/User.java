@@ -1,14 +1,11 @@
 package com.upgeekapi.entity;
 
+
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Representa um usuário no sistema.
@@ -21,6 +18,9 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(of = "id")
 public class User {
 
     @Id
@@ -43,9 +43,11 @@ public class User {
     private String password;
 
     @Column(name = "level")
+    @Builder.Default
     private int gamificationLevel = 1;
 
     @Column(name = "xp")
+    @Builder.Default
     private long experiencePoints = 0;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -54,43 +56,6 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
-
-    public User(String username, String email, String name, String cpf, String password) {
-        this.username = username;
-        this.email = email;
-        this.name = name;
-        this.cpf = cpf;
-        this.password = password;
-    }
-
-    /**
-     * Compara este User com outro objeto para verificar a igualdade.
-     * A comparação é baseada no 'id' da entidade, que é a prática recomendada
-     * para entidades JPA após serem persistidas.
-     *
-     * @param o O objeto a ser comparado.
-     * @return true se os objetos forem iguais, false caso contrário.
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        // O ID é usado para a verificação de igualdade, pois é a chave primária única.
-        // A verificação 'id != null' garante o comportamento correto para entidades ainda não persistidas.
-        return id != null && id.equals(user.id);
-    }
-
-    /**
-     * Retorna um valor de hash para o objeto.
-     * Usar um valor fixo ou o hash da classe é uma estratégia segura para entidades JPA
-     * para evitar que o hash mude quando o ID é gerado, o que pode quebrar coleções como HashSets.
-     *
-     * @return O valor de hash para o objeto.
-     */
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }
