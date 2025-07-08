@@ -53,6 +53,7 @@ public class SecurityConfig {
                 // Define as regras de autorização para cada endpoint.
                 .authorizeHttpRequests(authorize -> authorize
                         // Endpoints públicos
+                        .requestMatchers("/api").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()

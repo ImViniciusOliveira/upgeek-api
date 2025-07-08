@@ -1,0 +1,88 @@
+# ===================================================================
+# CONFIGURAÇÕES GERAIS (Aplicadas a todos os perfis)
+# ===================================================================
+spring:
+  application:
+    name: upgeek
+  # Ativa o perfil 'dev' por padrão.
+  profiles:
+    active: dev
+  jpa:
+    # Mostra o SQL no console, útil para debug em qualquer ambiente.
+    show-sql: false
+    properties:
+      hibernate:
+        # Formata o SQL no console para ser mais legível.
+        format_sql: false
+  # Configuração de logging geral.
+logging:
+  level:
+    # Reduz o log do Hibernate para mostrar apenas avisos (WARN) e erros.
+    org.hibernate: WARN
+
+# Configurações de segurança do JWT, que são as mesmas para todos os ambientes.
+security:
+  jwt:
+    issuer: upgeek-api
+    expiration-hours: 24
+    # Lê a chave secreta de uma variável de ambiente.
+    secret-key: ${JWT_SECRET_KEY}
+
+---
+
+# ===================================================================
+# PERFIL DE DESENVOLVIMENTO (dev)
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # Configurações do banco de dados para o ambiente de desenvolvimento local.
+  datasource:
+    url: jdbc:postgresql://localhost:5432/upgeek_db
+    username: upgeek_user
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # Apaga e recria o banco a cada reinicialização, garantindo um estado limpo.
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        # Define o "sotaque" que o Hibernate usará para falar com o PostgreSQL.
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+---
+
+# ===================================================================
+# PERFIL DE PRODUÇÃO (prod)
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  # Em produção, as credenciais do banco de dados DEVEM ser fornecidas por variáveis de ambiente.
+  datasource:
+    url: ${DB_URL_PROD}
+    username: ${DB_USERNAME_PROD}
+    password: ${DB_PASSWORD_PROD}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      # Valida se o esquema do banco corresponde às entidades, mas não faz nenhuma alteração.
+      ddl-auto: validate
+    # Em produção, desativamos a exibição de SQL para não poluir os logs.
+    show-sql: false
+
+  # CORREÇÃO: Bloco de logging agora está DENTRO do bloco 'spring' do perfil 'prod'.
+logging:
+  level:
+    # Reduz o ruído de logs de bibliotecas em produção.
+    com.zaxxer.hikari: WARN

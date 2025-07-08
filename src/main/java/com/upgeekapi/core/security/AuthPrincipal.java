@@ -1,5 +1,8 @@
 package com.upgeekapi.core.security;
 
+import com.upgeekapi.entity.Role;
+import com.upgeekapi.entity.User;
+
 import java.util.List;
 
 /**
@@ -15,4 +18,19 @@ import java.util.List;
 public record AuthPrincipal(
         Long userId,
         List<String> roles
-) {}
+) {
+    /**
+     * Factory method para criar uma instância de AuthPrincipal a partir de uma entidade User.
+     * Encapsula a lógica de extrair as roles, tornando o código na camada de serviço mais limpo.
+     *
+     * @param user A entidade User da qual o principal será criado.
+     * @return Uma nova instância de AuthPrincipal.
+     */
+    public static AuthPrincipal from(User user) {
+        List<String> roleNames = user.getRoles().stream()
+                .map(Role::getName)
+                .toList(); // .toList() é mais moderno e conciso que .collect(Collectors.toList())
+
+        return new AuthPrincipal(user.getId(), roleNames);
+    }
+}

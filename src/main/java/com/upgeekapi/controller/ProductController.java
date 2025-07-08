@@ -1,75 +1,113 @@
 package com.upgeekapi.controller;
 
+import com.upgeekapi.controller.assembler.ProductHateoasAssembler;
+import com.upgeekapi.dto.hateoas.ProductHateoasDTO;
 import com.upgeekapi.dto.request.ProductRequestDTO;
-import com.upgeekapi.dto.response.ProductDTO;
+import com.upgeekapi.entity.Product;
 import com.upgeekapi.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.List;
 
+/**
+ * Controller REST para o gerenciamento de produtos.
+ * <p>
+ * Atua como um orquestrador, recebendo requisições HTTP, delegando a lógica de negócio
+ * para o {@link ProductService} e usando o {@link ProductHateoasAssembler} para
+ * construir as respostas HATEOAS.
+ */
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/v1/products")
 @Tag(name = "Products", description = "Endpoints para gerenciamento de produtos e catálogo")
+@RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
-
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
+    private final ProductHateoasAssembler assembler;
 
     @GetMapping
-    @Operation(summary = "Listar todos os produtos", description = "Retorna uma lista de todos os produtos disponíveis na loja.")
-    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    @Operation(summary = "Listar todos os produtos")
+    public CollectionModel<ProductHateoasDTO> getAllProducts() {
+        List<Product> products = productService.getAllProducts();
+        return assembler.toCollectionModel(products);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar um produto por ID")
+    public ProductHateoasDTO getProductById(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        return assembler.toModel(product);
     }
 
     @GetMapping("/on-sale")
-    @Operation(summary = "Listar produtos em promoção", description = "Retorna uma lista de todos os produtos atualmente com desconto.")
-    public ResponseEntity<List<ProductDTO>> getProductsOnSale() {
-        return ResponseEntity.ok(productService.getProductsOnSale());
+    @Operation(summary = "Listar produtos em promoção")
+    public CollectionModel<ProductHateoasDTO> getProductsOnSale() {
+        List<Product> products = productService.getProductsOnSale();
+        return assembler.toCollectionModel(products);
     }
 
     @GetMapping("/tag/{tag}")
-    @Operation(summary = "Listar produtos por uma tag/coleção específica")
-    public ResponseEntity<List<ProductDTO>> getProductsByTag(@PathVariable String tag) {
-        return ResponseEntity.ok(productService.getProductsByTag(tag));
+    @Operation(summary = "Listar produtos por uma tag específica")
+    public CollectionModel<ProductHateoasDTO> getProductsByTag(@PathVariable String tag) {
+        List<Product> products = productService.getProductsByTag(tag);
+        return assembler.toCollectionModel(products);
     }
 
     @GetMapping("/search")
     @Operation(summary = "Buscar produtos com filtros dinâmicos")
-    public ResponseEntity<List<ProductDTO>> searchProducts(
+    public CollectionModel<ProductHateoasDTO> searchProducts(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice) {
 
-        List<ProductDTO> products = productService.searchProducts(name, minPrice, maxPrice);
-        return ResponseEntity.ok(products);
+        List<Product> products = productService.searchProducts(name, minPrice, maxPrice);
+        return assembler.toCollectionModel(products);
     }
 
     @PostMapping
     @Operation(summary = "Criar um novo produto (Admin)", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductRequestDTO request) {
-        ProductDTO createdProduct = productService.createProduct(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
+    @ApiResponse(responseCode = "201", description = "Produto criado com sucesso",
+            headers = @Header(name = "Location", description = "URL do novo recurso"))
+    public ResponseEntity<ProductHateoasDTO> createProduct(@Valid @RequestBody ProductRequestDTO request) {
+        Product createdProduct = productService.createProduct(request);
+        ProductHateoasDTO model = assembler.toModel(createdProduct);
+
+        // Constrói a URI do novo recurso para o cabeçalho 'Location'.
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createdProduct.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(model);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar um produto existente (Admin)", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequestDTO request) {
-        ProductDTO updatedProduct = productService.updateProduct(id, request);
-        return ResponseEntity.ok(updatedProduct);
+    public ResponseEntity<ProductHateoasDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequestDTO request) {
+        Product updatedProduct = productService.updateProduct(id, request);
+        ProductHateoasDTO model = assembler.toModel(updatedProduct);
+        return ResponseEntity.ok(model);
     }
 
+    /**
+     * O retorno {@code ResponseEntity<Void>} é crucial para que o Spring HATEOAS consiga
+     * construir links para este método sem causar o erro 'linkTo(void)'.
+     */
     @DeleteMapping("/{id}")
     @Operation(summary = "Deletar um produto (Admin)", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "204", description = "Produto deletado com sucesso")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();

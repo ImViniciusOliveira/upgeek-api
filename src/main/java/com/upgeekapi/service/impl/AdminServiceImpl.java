@@ -28,13 +28,16 @@ public class AdminServiceImpl implements AdminService {
         User user = userAndRole.user();
         Role roleToAdd = userAndRole.role();
 
-        if (user.getRoles().contains(roleToAdd)) {
-            return userMapper.toDto(user);
+        // A operação já é idempotente. Se a role já existe, não fazemos nada.
+        // O método Set.add() já retorna false se o elemento existe, então podemos usá-lo.
+        boolean wasAdded = user.getRoles().add(roleToAdd);
+
+        // Só salvamos no banco se houve uma mudança real.
+        if (wasAdded) {
+            return saveAndMap(user);
         }
 
-        user.getRoles().add(roleToAdd);
-        User updatedUser = userRepository.save(user);
-        return userMapper.toDto(updatedUser);
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -44,13 +47,22 @@ public class AdminServiceImpl implements AdminService {
         User user = userAndRole.user();
         Role roleToRemove = userAndRole.role();
 
+        // A regra de negócio de não remover a última role é a verificação mais importante.
         if (user.getRoles().size() <= 1 && user.getRoles().contains(roleToRemove)) {
             throw new BusinessRuleException("Não é possível remover a última role de um usuário.");
         }
 
-        user.getRoles().remove(roleToRemove);
-        User updatedUser = userRepository.save(user);
-        return userMapper.toDto(updatedUser);
+        // MELHORIA: Tornamos a remoção idempotente.
+        // O método Set.remove() retorna true se o elemento foi de fato removido.
+        boolean wasRemoved = user.getRoles().remove(roleToRemove);
+
+        // Só salvamos no banco se houve uma mudança real.
+        if (wasRemoved) {
+            return saveAndMap(user);
+        }
+
+        // Se a role não existia no usuário, simplesmente retornamos o estado atual.
+        return userMapper.toDto(user);
     }
 
     /**
@@ -60,10 +72,6 @@ public class AdminServiceImpl implements AdminService {
 
     /**
      * Private helper method to find both the user and the role, reducing code duplication.
-     *
-     * @param userId   The ID of the user to find.
-     * @param roleName The name of the role to find.
-     * @return A record containing the found User and Role entities.
      */
     private UserAndRole findUserAndRole(Long userId, String roleName) {
         User user = userRepository.findById(userId)
@@ -73,5 +81,14 @@ public class AdminServiceImpl implements AdminService {
                 .orElseThrow(() -> new ResourceNotFoundException("Role com nome '" + roleName + "' não encontrada."));
 
         return new UserAndRole(user, role);
+    }
+
+    /**
+     * Método auxiliar para salvar a entidade User e mapeá-la para um DTO.
+     * Reduz a duplicação nos métodos públicos.
+     */
+    private UserAccountDTO saveAndMap(User user) {
+        User updatedUser = userRepository.save(user);
+        return userMapper.toDto(updatedUser);
     }
 }

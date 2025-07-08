@@ -1,29 +1,30 @@
 package com.upgeekapi.service;
 
 import com.upgeekapi.dto.request.UpdateAccountRequestDTO;
-import com.upgeekapi.dto.response.UserAccountDTO;
+import com.upgeekapi.entity.User; // MUDANÇA: Importamos a entidade
 
 /**
  * Interface que define o contrato para os serviços relacionados ao gerenciamento
- * da conta do usuário.
+ * da conta do usuário. Os métodos retornam a entidade User para desacoplar
+ * a camada de serviço da camada de apresentação (DTOs).
  */
 public interface UserService {
 
     /**
-     * Encontra os dados de uma conta de usuário pelo seu ID interno.
+     * Encontra um usuário pelo seu ID interno.
      * @param userId O ID único do usuário.
-     * @return Um DTO com os dados da conta do usuário.
+     * @return A entidade {@link User} correspondente.
      * @throws com.upgeekapi.exception.custom.ResourceNotFoundException se o usuário não for encontrado.
      */
-    UserAccountDTO findUserAccountById(Long userId);
+    User findUserById(Long userId); // MUDANÇA: Retorna a entidade User
 
     /**
      * Atualiza os dados de um usuário existente.
      * @param userId O ID do usuário a ser atualizado.
      * @param request O DTO com as novas informações a serem aplicadas.
-     * @return O DTO do usuário com os dados atualizados.
+     * @return A entidade {@link User} com os dados atualizados.
      */
-    UserAccountDTO updateUser(Long userId, UpdateAccountRequestDTO request);
+    User updateUserAccount(Long userId, UpdateAccountRequestDTO request); // MUDANÇA: Retorna a entidade User
 
     /**
      * Deleta a conta de um usuário com base no seu ID.

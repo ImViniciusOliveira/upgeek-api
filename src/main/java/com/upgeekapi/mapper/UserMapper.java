@@ -1,5 +1,6 @@
 package com.upgeekapi.mapper;
 
+import com.upgeekapi.dto.hateoas.AccountHateoasDTO;
 import com.upgeekapi.dto.response.UserAccountDTO;
 import com.upgeekapi.entity.User;
 import org.mapstruct.Mapper;
@@ -9,21 +10,14 @@ import java.util.List;
 
 /**
  * Interface gerenciada pelo MapStruct para converter a entidade {@link User}
- * em um {@link UserAccountDTO}.
- * <p>
- * A implementação desta interface é gerada automaticamente em tempo de compilação,
- * eliminando a necessidade de código manual e garantindo performance e segurança.
+ * em seus DTOs de representação.
  */
-@Mapper(componentModel = "spring") // Diz ao MapStruct para gerar um Bean do Spring
+@Mapper(componentModel = "spring")
 public interface UserMapper {
 
     /**
-     * Mapeia um User para um UserAccountDTO.
-     * O MapStruct mapeia campos com o mesmo nome automaticamente (name, username, email).
-     * Os campos com nomes diferentes ou com lógica customizada precisam de regras.
-     *
-     * @param user A entidade a ser convertida.
-     * @return O DTO correspondente.
+     * Mapeia um User para um UserAccountDTO (DTO de dados puros).
+     * Esta é a base para outras conversões.
      */
     @Mapping(source = "gamificationLevel", target = "level")
     @Mapping(source = "experiencePoints", target = "xp")
@@ -32,7 +26,20 @@ public interface UserMapper {
 
     /**
      * Mapeia uma lista de Users para uma lista de UserAccountDTOs.
-     * O MapStruct gera automaticamente o loop para nós.
      */
     List<UserAccountDTO> toDto(List<User> users);
+
+    // --- Mapeamento para o DTO HATEOAS ---
+
+    /**
+     * Converte a entidade {@link User} para o seu modelo de representação HATEOAS {@link AccountHateoasDTO}.
+     * <p>
+     * Este método reutiliza o mapeamento de {@code toDto(User)} para preencher o campo {@code userData}.
+     * O MapStruct é inteligente o suficiente para entender que deve chamar o outro método.
+     *
+     * @param user A entidade de domínio a ser convertida.
+     * @return O DTO de resposta HATEOAS, com os dados preenchidos, pronto para receber os links.
+     */
+    @Mapping(source = "user", target = "userData") // A MÁGICA ACONTECE AQUI
+    AccountHateoasDTO toHateoasDTO(User user);
 }

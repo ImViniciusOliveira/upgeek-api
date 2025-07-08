@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
  * Controller para endpoints de administração, protegidos para acesso apenas por usuários com a role 'ADMIN'.
  */
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/v1/admin")
 @Tag(name = "Admin", description = "Endpoints de Administração")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminController {
