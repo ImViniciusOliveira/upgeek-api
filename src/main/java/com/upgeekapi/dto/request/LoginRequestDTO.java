@@ -2,6 +2,7 @@ package com.upgeekapi.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern; // Importe a anotação
 
 /**
  * DTO que representa os dados de credenciais para uma tentativa de login.
@@ -11,12 +12,16 @@ import jakarta.validation.constraints.NotBlank;
 public record LoginRequestDTO(
 
         @NotBlank(message = "O email é obrigatório.")
+        // ADICIONADO: Validação para proibir espaços no início/fim
+        @Pattern(regexp = "^\\S.*\\S$", message = "O email não pode conter espaços no início ou no fim.")
         @Schema(description = "O email do usuário para autenticação.",
                 example = "kain.admin@upgeek.com",
                 requiredMode = Schema.RequiredMode.REQUIRED)
         String email,
 
         @NotBlank(message = "A senha é obrigatória.")
+        // ADICIONADO: Validação para proibir espaços no início/fim
+        @Pattern(regexp = "^\\S.*\\S$", message = "A senha não pode conter espaços no início ou no fim.")
         @Schema(description = "A senha associada à conta do usuário.",
                 example = "AdminLegacy#7890",
                 requiredMode = Schema.RequiredMode.REQUIRED)

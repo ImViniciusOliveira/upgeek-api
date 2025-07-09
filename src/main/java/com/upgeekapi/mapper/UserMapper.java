@@ -34,12 +34,21 @@ public interface UserMapper {
     /**
      * Converte a entidade {@link User} para o seu modelo de representação HATEOAS {@link AccountHateoasDTO}.
      * <p>
-     * Este método reutiliza o mapeamento de {@code toDto(User)} para preencher o campo {@code userData}.
-     * O MapStruct é inteligente o suficiente para entender que deve chamar o outro método.
+     * Esta implementação explícita com 'default' method resolve a ambiguidade do MapStruct
+     * com DTOs imutáveis que possuem um "invólucro" (wrapper).
      *
      * @param user A entidade de domínio a ser convertida.
      * @return O DTO de resposta HATEOAS, com os dados preenchidos, pronto para receber os links.
      */
-    @Mapping(source = "user", target = "userData") // A MÁGICA ACONTECE AQUI
-    AccountHateoasDTO toHateoasDTO(User user);
+    default AccountHateoasDTO toHateoasDTO(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        // Passo 1: Usamos o método que o MapStruct já sabe implementar para converter os dados base.
+        UserAccountDTO userData = toDto(user);
+
+        // Passo 2: Chamamos manualmente o construtor do DTO "invólucro", que é imutável.
+        return new AccountHateoasDTO(userData);
+    }
 }

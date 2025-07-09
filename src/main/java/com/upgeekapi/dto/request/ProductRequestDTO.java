@@ -1,9 +1,10 @@
 package com.upgeekapi.dto.request;
 
+import com.upgeekapi.validation.annotation.ValidDiscount;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ import java.util.Set;
  * DTO que representa os dados para criar ou atualizar um produto.
  */
 @Schema(description = "Dados necessários para criar ou atualizar um produto.")
+@ValidDiscount
 public record ProductRequestDTO(
         @NotBlank(message = "O nome do produto é obrigatório.")
         @Schema(description = "O nome do produto.", example = "Estátua de Lira Valen", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -20,19 +22,20 @@ public record ProductRequestDTO(
         String description,
 
         @NotNull(message = "O preço original é obrigatório.")
-        @Min(value = 0, message = "O preço não pode ser negativo.")
+        @PositiveOrZero(message = "O preço não pode ser negativo.")
         @Schema(description = "O preço original do produto.", example = "599.90", requiredMode = Schema.RequiredMode.REQUIRED)
         BigDecimal originalPrice,
 
-        @Min(value = 0, message = "O preço com desconto não pode ser negativo.")
-        @Schema(description = "O preço com desconto, se o produto estiver em promoção. Caso contrário, pode ser nulo.", example = "499.90")
+        @PositiveOrZero(message = "O preço com desconto não pode ser negativo.")
+        @Schema(description = "O preço com desconto. Deve ser informado se 'onSale' for true. Pode ser nulo se 'onSale' for false.", example = "499.90")
         BigDecimal discountPrice,
 
-        @Schema(description = "Indica se o produto está atualmente em promoção.", example = "true")
+        @NotNull(message = "É obrigatório indicar se o produto está em promoção.")
+        @Schema(description = "Indica se o produto está atualmente em promoção. Controla a relevância do campo 'discountPrice'.", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
         Boolean onSale,
 
         @NotNull(message = "A quantidade de XP é obrigatória.")
-        @Min(value = 0, message = "O XP não pode ser negativo.")
+        @PositiveOrZero(message = "O XP não pode ser negativo.")
         @Schema(description = "A quantidade de XP concedida ao adquirir o produto.", example = "2500", requiredMode = Schema.RequiredMode.REQUIRED)
         Long xp,
 
@@ -41,7 +44,7 @@ public record ProductRequestDTO(
         String imageUrl,
 
         @NotNull(message = "A quantidade em estoque é obrigatória.")
-        @Min(value = 0, message = "O estoque não pode ser negativo.")
+        @PositiveOrZero(message = "O estoque não pode ser negativo.")
         @Schema(description = "A quantidade de itens em estoque.", example = "20", requiredMode = Schema.RequiredMode.REQUIRED)
         Integer stockQuantity,
 
