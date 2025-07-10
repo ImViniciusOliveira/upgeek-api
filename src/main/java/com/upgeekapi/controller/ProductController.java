@@ -7,6 +7,7 @@ import com.upgeekapi.entity.Product;
 import com.upgeekapi.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -79,7 +80,8 @@ public class ProductController {
     @PostMapping
     @Operation(summary = "Criar um novo produto (Admin)", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "201", description = "Produto criado com sucesso",
-            headers = @Header(name = "Location", description = "URL do novo recurso"))
+            headers = @Header(name = "Location", description = "URL do novo recurso",
+                    schema = @Schema(type = "string")))
     public ResponseEntity<ProductHateoasDTO> createProduct(@Valid @RequestBody ProductRequestDTO request) {
         Product createdProduct = productService.createProduct(request);
         ProductHateoasDTO model = assembler.toModel(createdProduct);

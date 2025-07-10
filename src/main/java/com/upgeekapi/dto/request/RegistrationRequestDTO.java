@@ -20,19 +20,19 @@ public record RegistrationRequestDTO(
         @NotBlank(message = "O email é obrigatório.")
         @Email(message = "O formato do email é inválido.")
         @Size(max = 255, message = "O email não pode exceder 255 caracteres.")
-        @Pattern(regexp = "^\\S.*\\S$", message = "O email não pode conter espaços no início ou no fim.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O email não pode conter espaços no início ou no fim.")
         @Schema(description = "Email único para login e contato. Será usado para gerar um nome de usuário inicial.", example = "lira.valen@scarlate.org", requiredMode = Schema.RequiredMode.REQUIRED)
         String email,
 
         @NotBlank(message = "O CPF é obrigatório.")
         @CPF(message = "O CPF fornecido é inválido.")
-        @Pattern(regexp = "^\\S.*\\S$", message = "O CPF não pode conter espaços no início ou no fim.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O CPF não pode conter espaços no início ou no fim.")
         @Schema(description = "CPF do usuário (pode ser formatado ou apenas números).", example = "12345678901", requiredMode = Schema.RequiredMode.REQUIRED)
         String cpf,
 
         @NotBlank(message = "A senha é obrigatória.")
         @Size(min = 12, max = 72, message = "A senha deve ter entre 12 e 72 caracteres.")
-        @Pattern(regexp = "^\\S.*\\S$", message = "A senha não pode conter espaços no início ou no fim.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A senha não pode conter espaços no início ou no fim.")
         @Pattern(regexp = ".*[a-z].*", message = "A senha deve conter pelo menos uma letra minúscula.")
         @Pattern(regexp = ".*[A-Z].*", message = "A senha deve conter pelo menos uma letra maiúscula.")
         @Pattern(regexp = ".*\\d.*", message = "A senha deve conter pelo menos um número.")

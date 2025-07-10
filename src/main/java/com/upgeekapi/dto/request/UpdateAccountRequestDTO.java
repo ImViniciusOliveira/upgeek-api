@@ -25,7 +25,7 @@ public record UpdateAccountRequestDTO(
 
         @Email(message = "O formato do email é inválido.")
         @Size(max = 255, message = "O email não pode exceder 255 caracteres.")
-        @Pattern(regexp = "^\\S.*\\S$", message = "O email não pode conter espaços no início ou no fim.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O email não pode conter espaços no início ou no fim.")
         @Schema(description = "O novo email para login e contato.", example = "kain.prime@upgeek.com")
         String email
 ) {}

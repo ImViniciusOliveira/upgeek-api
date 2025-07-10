@@ -18,7 +18,7 @@ public record UpdatePasswordRequestDTO(
 
         @NotBlank(message = "A nova senha é obrigatória.")
         @Size(min = 12, max = 72, message = "A nova senha deve ter entre 12 e 72 caracteres.")
-        @Pattern(regexp = "^\\S.*\\S$", message = "A nova senha não pode conter espaços no início ou no fim.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A nova senha não pode conter espaços no início ou no fim.")
         @Pattern(regexp = ".*[a-z].*", message = "A nova senha deve conter pelo menos uma letra minúscula.")
         @Pattern(regexp = ".*[A-Z].*", message = "A nova senha deve conter pelo menos uma letra maiúscula.")
         @Pattern(regexp = ".*\\d.*", message = "A nova senha deve conter pelo menos um número.")
