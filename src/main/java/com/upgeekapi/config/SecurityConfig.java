@@ -3,6 +3,7 @@ package com.upgeekapi.config;
 import com.upgeekapi.security.CustomAccessDeniedHandler;
 import com.upgeekapi.security.CustomAuthenticationEntryPoint;
 import com.upgeekapi.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor; // Importação adicionada
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,18 +23,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
-    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // Desabilita CSRF, pois a API é stateless.
                 .csrf(AbstractHttpConfigurer::disable)
@@ -44,7 +43,7 @@ public class SecurityConfig {
                 // Define a política de sessão como STATELESS, essencial para APIs REST com JWT.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Configura o handler para erros de autenticação (401) e (403).
+                // Configura o handler para erros de autenticação (401) e autorização (403).
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
@@ -52,20 +51,21 @@ public class SecurityConfig {
 
                 // Define as regras de autorização para cada endpoint.
                 .authorizeHttpRequests(authorize -> authorize
+
                         // Endpoints públicos
-                        .requestMatchers("/api").permitAll()
+                        .requestMatchers("/api/v1").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         // Endpoints de escrita de produtos para ADMINS
-                        .requestMatchers(HttpMethod.POST, "/api/products").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
                         // Endpoints que exigem autenticação e a role "USER"
-                        .requestMatchers("/api/account/**").hasRole("USER")
+                        .requestMatchers("/api/v1/account/**").hasRole("USER")
                         .requestMatchers("/api/auth/me").hasRole("USER")
 
                         // Exige autenticação para qualquer outra requisição

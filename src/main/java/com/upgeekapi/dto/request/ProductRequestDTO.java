@@ -4,7 +4,9 @@ import com.upgeekapi.validation.annotation.ValidDiscount;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.Set;
 
@@ -15,9 +17,12 @@ import java.util.Set;
 @ValidDiscount
 public record ProductRequestDTO(
         @NotBlank(message = "O nome do produto é obrigatório.")
+        @Size(max = 255, message = "O nome do produto não pode exceder 255 caracteres.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O nome do produto não pode conter espaços no início ou no fim.")
         @Schema(description = "O nome do produto.", example = "Estátua de Lira Valen", requiredMode = Schema.RequiredMode.REQUIRED)
         String name,
 
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A descrição não pode conter espaços no início ou no fim.")
         @Schema(description = "A descrição detalhada do produto.")
         String description,
 
@@ -40,6 +45,7 @@ public record ProductRequestDTO(
         Long xp,
 
         @NotBlank(message = "A URL da imagem é obrigatória.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A URL da imagem não pode conter espaços no início ou no fim.")
         @Schema(description = "A URL da imagem principal do produto.", example = "/assets/images/lira-valen.webp", requiredMode = Schema.RequiredMode.REQUIRED)
         String imageUrl,
 
@@ -49,5 +55,10 @@ public record ProductRequestDTO(
         Integer stockQuantity,
 
         @Schema(description = "Conjunto de tags ou categorias associadas ao produto.", example = "[\"alianca-scarlate\", \"edicao-limitada\"]")
-        Set<String> tags
+        Set<
+                @NotBlank(message = "A tag não pode ser vazia.")
+                @Size(max = 50, message = "A tag não pode exceder 50 caracteres.")
+                @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A tag não pode conter espaços no início ou no fim.")
+                        String
+                > tags
 ) {}

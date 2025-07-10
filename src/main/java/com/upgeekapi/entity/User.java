@@ -1,9 +1,7 @@
 package com.upgeekapi.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,12 +48,10 @@ public class User {
     @Builder.Default
     private long experiencePoints = 0;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+    @ElementCollection(targetClass = RoleEnum.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING) // Garante que o nome do Enum ("ROLE_USER") seja salvo, e não um número.
+    @Column(name = "role", nullable = false)
     @Builder.Default
-    private Set<Role> roles = new HashSet<>();
+    private Set<RoleEnum> roles = new HashSet<>();
 }

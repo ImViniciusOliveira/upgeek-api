@@ -1,10 +1,7 @@
 package com.upgeekapi.exception.handler;
 
 import com.upgeekapi.dto.response.ErrorDTO;
-import com.upgeekapi.exception.custom.AuthenticationException;
-import com.upgeekapi.exception.custom.BusinessRuleException;
-import com.upgeekapi.exception.custom.DataConflictException;
-import com.upgeekapi.exception.custom.ResourceNotFoundException;
+import com.upgeekapi.exception.custom.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -89,6 +86,25 @@ public class GlobalExceptionHandler {
                 fieldErrors
         );
 
+        return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Lida com nossa MultiValidationException customizada para fornecer um
+     * formato de resposta de erro consistente para validações de lógica de negócio.
+     *
+     * @param ex A exceção contendo o mapa de erros de validação.
+     * @return Um ResponseEntity com status 400 Bad Request e um corpo de erro detalhado.
+     */
+    @ExceptionHandler(MultiValidationException.class)
+    public ResponseEntity<ErrorDTO> handleMultiValidationException(MultiValidationException ex) {
+        ErrorDTO errorDto = new ErrorDTO(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                ex.getErrors()
+        );
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 

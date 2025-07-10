@@ -4,10 +4,9 @@ import com.upgeekapi.core.security.AuthPrincipal;
 import com.upgeekapi.dto.request.LoginRequestDTO;
 import com.upgeekapi.dto.request.RegistrationRequestDTO;
 import com.upgeekapi.dto.response.LoginDTO;
-import com.upgeekapi.entity.Role;
+import com.upgeekapi.entity.RoleEnum;
 import com.upgeekapi.entity.User;
 import com.upgeekapi.exception.custom.AuthenticationException;
-import com.upgeekapi.repository.RoleRepository;
 import com.upgeekapi.repository.UserRepository;
 import com.upgeekapi.service.AuthService;
 import com.upgeekapi.service.TokenService;
@@ -30,7 +29,6 @@ import java.util.stream.Stream;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final UserUniquenessValidator uniquenessValidator;
@@ -55,16 +53,13 @@ public class AuthServiceImpl implements AuthService {
     public void register(RegistrationRequestDTO request) {
         uniquenessValidator.validate(request);
 
-        Role defaultRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new IllegalStateException("A role padrão ROLE_USER não foi encontrada."));
-
         User newUser = User.builder()
                 .username(generateUniqueUsername(request.email()))
                 .email(request.email())
                 .name(request.name())
                 .cpf(request.cpf())
                 .password(passwordEncoder.encode(request.password()))
-                .roles(Set.of(defaultRole))
+                .roles(Set.of(RoleEnum.ROLE_USER))
                 .build();
 
         userRepository.save(newUser);

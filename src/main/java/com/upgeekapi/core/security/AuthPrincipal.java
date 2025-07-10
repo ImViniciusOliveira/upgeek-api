@@ -1,6 +1,6 @@
 package com.upgeekapi.core.security;
 
-import com.upgeekapi.entity.Role;
+import com.upgeekapi.entity.RoleEnum;
 import com.upgeekapi.entity.User;
 
 import java.util.List;
@@ -28,8 +28,8 @@ public record AuthPrincipal(
      */
     public static AuthPrincipal from(User user) {
         List<String> roleNames = user.getRoles().stream()
-                .map(Role::getName)
-                .toList(); // .toList() é mais moderno e conciso que .collect(Collectors.toList())
+                .map(RoleEnum::getAuthority)
+                .toList();
 
         return new AuthPrincipal(user.getId(), roleNames);
     }

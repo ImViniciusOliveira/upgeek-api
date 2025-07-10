@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Delega a construção dos links para um serviço dedicado.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 @Tag(name = "API Root", description = "Ponto de entrada da API")
 public class ApiRootController {

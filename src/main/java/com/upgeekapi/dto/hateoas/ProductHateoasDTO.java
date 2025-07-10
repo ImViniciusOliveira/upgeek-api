@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Data; // 1. Importar @Data
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
@@ -16,11 +16,11 @@ import java.util.Set;
 /**
  * Modelo de representação HATEOAS para um Produto.
  * <p>
- * Este DTO é projetado para ser largamente imutável, com dados definidos
- * via construtor. Ele contém todos os dados de um produto e estende {@link RepresentationModel}
+ * Este DTO contém todos os dados de um produto e estende {@link RepresentationModel}
  * para poder carregar links de ações da API.
  */
-@Getter
+// 2. Substituir @Getter e @EqualsAndHashCode por @Data
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
@@ -49,7 +49,7 @@ public class ProductHateoasDTO extends RepresentationModel<ProductHateoasDTO> {
     private boolean onSale;
 
     @Schema(description = "Pontos de experiência (XP) que o usuário ganha ao adquirir este produto.", example = "300")
-    private Integer xp;
+    private Long xp;
 
     @Schema(description = "URL da imagem principal do produto.", example = "https://example.com/images/batman-figure.jpg")
     private String imageUrl;

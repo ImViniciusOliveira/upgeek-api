@@ -67,6 +67,9 @@ public interface ProductMapper {
      * @param product A entidade de domínio a ser convertida.
      * @return O DTO de resposta HATEOAS.
      */
+    // Ignoramos explicitamente o campo 'links' herdado de RepresentationModel.
+    // Isso remove a ambiguidade para o MapStruct, que agora irá mapear todos os outros campos corretamente.
+    @Mapping(target = "links", ignore = true)
     ProductHateoasDTO toHateoasDTO(Product product);
 
 }

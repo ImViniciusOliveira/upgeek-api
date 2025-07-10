@@ -48,7 +48,7 @@ public class Product {
     private String imageUrl;
 
     @Column(nullable = false)
-    private int stockQuantity;
+    private Integer stockQuantity;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "product_tags", joinColumns = @JoinColumn(name = "product_id"))

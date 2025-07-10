@@ -1,6 +1,7 @@
 package com.upgeekapi.service;
 
 import com.upgeekapi.dto.request.UpdateAccountRequestDTO;
+import com.upgeekapi.dto.request.UpdatePasswordRequestDTO;
 import com.upgeekapi.entity.User; // MUDANÇA: Importamos a entidade
 
 /**
@@ -32,4 +33,13 @@ public interface UserService {
      * @throws com.upgeekapi.exception.custom.ResourceNotFoundException se o usuário não for encontrado.
      */
     void deleteUserById(Long userId);
+
+    /**
+     * Atualiza a senha de um usuário, após verificar a senha atual.
+     *
+     * @param userId O ID do usuário cuja senha será alterada.
+     * @param request O DTO contendo a senha atual e a nova senha.
+     * @throws com.upgeekapi.exception.custom.BusinessRuleException se a senha atual estiver incorreta.
+     */
+    void updatePassword(Long userId, UpdatePasswordRequestDTO request);
 }

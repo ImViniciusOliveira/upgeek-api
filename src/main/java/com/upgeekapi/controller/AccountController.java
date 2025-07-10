@@ -4,6 +4,7 @@ import com.upgeekapi.controller.assembler.AccountHateoasAssembler;
 import com.upgeekapi.core.security.AuthPrincipal;
 import com.upgeekapi.dto.hateoas.AccountHateoasDTO;
 import com.upgeekapi.dto.request.UpdateAccountRequestDTO;
+import com.upgeekapi.dto.request.UpdatePasswordRequestDTO;
 import com.upgeekapi.entity.User;
 import com.upgeekapi.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,6 +71,22 @@ public class AccountController {
     })
     public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal AuthPrincipal principal) {
         userService.deleteUserById(principal.userId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/password")
+    @Operation(summary = "Atualizar a senha do usuário autenticado",
+            description = "Exige a senha atual para verificação antes de definir uma nova senha. A nova senha deve atender aos critérios de complexidade da plataforma.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Senha atualizada com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Requisição inválida. A senha atual pode estar incorreta, a nova senha pode ser igual à antiga ou não atender aos critérios de validação."),
+            @ApiResponse(responseCode = "401", description = "Não autorizado.")
+    })
+    public ResponseEntity<Void> updatePassword(
+            @AuthenticationPrincipal AuthPrincipal principal,
+            @Valid @RequestBody UpdatePasswordRequestDTO request) {
+
+        userService.updatePassword(principal.userId(), request);
         return ResponseEntity.noContent().build();
     }
 }

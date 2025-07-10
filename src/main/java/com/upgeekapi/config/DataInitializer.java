@@ -1,10 +1,9 @@
 package com.upgeekapi.config;
 
 import com.upgeekapi.entity.Product;
-import com.upgeekapi.entity.Role;
+import com.upgeekapi.entity.RoleEnum;
 import com.upgeekapi.entity.User;
 import com.upgeekapi.repository.ProductRepository;
-import com.upgeekapi.repository.RoleRepository;
 import com.upgeekapi.repository.UserRepository;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -19,53 +18,67 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Configuração para popular o banco de dados com dados iniciais para o ambiente de desenvolvimento.
+ * <p>
+ * Esta classe é ativada apenas quando o perfil "dev" está em uso. Ela garante que a aplicação
+ * inicie com um conjunto consistente e previsível de usuários e produtos, facilitando
+ * testes e demonstrações.
+ */
 @Slf4j
 @Configuration
 @Profile("dev")
 public class DataInitializer {
 
-    // Usando records privados para agrupar dados, limpando as assinaturas dos métodos.
-    @Builder private record UserData(String username, String email, String name, String cpf, String password, Set<Role> roles) {}
-    @Builder private record ProductData(String name, String description, BigDecimal originalPrice, Long xp, String imageUrl, int stockQuantity, boolean onSale, BigDecimal discountPrice, Set<String> tags) {}
+    /**
+     * Record interno para agrupar os dados de um usuário a ser criado.
+     * O uso de RoleEnum garante segurança de tipos na definição dos papéis.
+     */
+    @Builder
+    private record UserData(String username, String email, String name, String cpf, String password, Set<RoleEnum> roles) {}
+
+    /**
+     * Record interno para agrupar os dados de um produto a ser criado.
+     * Os tipos de dados aqui espelham a entidade Product para máxima consistência.
+     */
+    @Builder
+    private record ProductData(String name, String description, BigDecimal originalPrice, Long xp, String imageUrl, Integer stockQuantity, boolean onSale, BigDecimal discountPrice, Set<String> tags) {}
 
     @Bean
     @Transactional
     CommandLineRunner initDatabase(
             UserRepository userRepository,
-            RoleRepository roleRepository,
             ProductRepository productRepository,
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
-            log.info("### INICIANDO POPULAÇÃO COMPLETA DO BANCO DE DADOS (PERFIL DEV) ###");
+            log.info("### INICIANDO POPULAÇÃO DO BANCO DE DADOS (PERFIL DEV) ###");
 
+            // Limpeza eficiente dos dados existentes para garantir um estado inicial limpo.
             userRepository.deleteAllInBatch();
-            roleRepository.deleteAllInBatch();
             productRepository.deleteAllInBatch();
-            log.info(">>> Dados antigos removidos com sucesso.");
+            log.info(">>> Dados antigos de usuários e produtos removidos com sucesso.");
 
-            // 1. Cria as Roles essenciais
-            Role userRole = createRoleIfNotExists(roleRepository, "ROLE_USER");
-            Role adminRole = createRoleIfNotExists(roleRepository, "ROLE_ADMIN");
-
-            // 2. Define e cria todos os usuários
+            // --- 1. Criação de Usuários ---
+            // Define uma lista de usuários com diferentes papéis para popular o sistema.
             var usersToCreate = List.of(
                     // Admins
-                    UserData.builder().username("kain_admin").email("kain.admin@upgeek.com").name("Kain (Admin)").cpf("87543940057").password("AdminLegacy#7890").roles(Set.of(userRole, adminRole)).build(),
-                    UserData.builder().username("tenebris_prime").email("imperador@tenebris.net").name("Imperador Tenebris").cpf("52998224725").password("OrdemAbsoluta#2025").roles(Set.of(userRole, adminRole)).build(),
-                    UserData.builder().username("lira_system").email("lira.sys@scarlate.org").name("Lira Valen System").cpf("28745563895").password("ScarlateControl#123").roles(Set.of(userRole, adminRole)).build(),
-                    UserData.builder().username("jax_operator").email("jax.op@duum.net").name("Jax Operator").cpf("78433510050").password("OperatorPass#3210").roles(Set.of(userRole, adminRole)).build(),
-                    UserData.builder().username("nyx_shadow").email("nyx.shadow@tenebris.net").name("Nyx Shadow Ops").cpf("88828547031").password("ShadowKey#456789").roles(Set.of(userRole, adminRole)).build(),
+                    UserData.builder().username("kain_admin").email("kain.admin@upgeek.com").name("Kain (Admin)").cpf("87543940057").password("AdminLegacy#7890").roles(Set.of(RoleEnum.ROLE_USER, RoleEnum.ROLE_ADMIN)).build(),
+                    UserData.builder().username("tenebris_prime").email("imperador@tenebris.net").name("Imperador Tenebris").cpf("52998224725").password("OrdemAbsoluta#2025").roles(Set.of(RoleEnum.ROLE_USER, RoleEnum.ROLE_ADMIN)).build(),
+                    UserData.builder().username("lira_system").email("lira.sys@scarlate.org").name("Lira Valen System").cpf("28745563895").password("ScarlateControl#123").roles(Set.of(RoleEnum.ROLE_USER, RoleEnum.ROLE_ADMIN)).build(),
+                    UserData.builder().username("jax_operator").email("jax.op@duum.net").name("Jax Operator").cpf("78433510050").password("OperatorPass#3210").roles(Set.of(RoleEnum.ROLE_USER, RoleEnum.ROLE_ADMIN)).build(),
+                    UserData.builder().username("nyx_shadow").email("nyx.shadow@tenebris.net").name("Nyx Shadow Ops").cpf("88828547031").password("ShadowKey#456789").roles(Set.of(RoleEnum.ROLE_USER, RoleEnum.ROLE_ADMIN)).build(),
                     // Usuários Normais
-                    UserData.builder().username("Kain Renegade").email("kain.renegade@duum.net").name("Kain").cpf("21558440031").password("darkLight#123456").roles(Set.of(userRole)).build(),
-                    UserData.builder().username("Jax Scout").email("jax.scout@duum.net").name("Jax").cpf("32139122036").password("ScoutPass#12345").roles(Set.of(userRole)).build(),
-                    UserData.builder().username("Lira Valen").email("lira.valen@scarlate.org").name("Lira Valen").cpf("65432198700").password("AliancaScarlate#123").roles(Set.of(userRole)).build(),
-                    UserData.builder().username("Echo Tech").email("echo.tech@scarlate.org").name("Echo").cpf("98765432109").password("TechieDream#8888").roles(Set.of(userRole)).build(),
-                    UserData.builder().username("Silas Merc").email("silas.merc@duum.net").name("Silas").cpf("12345678909").password("MercenaryLife#999").roles(Set.of(userRole)).build()
+                    UserData.builder().username("Kain Renegade").email("kain.renegade@duum.net").name("Kain").cpf("21558440031").password("darkLight#123456").roles(Set.of(RoleEnum.ROLE_USER)).build(),
+                    UserData.builder().username("Jax Scout").email("jax.scout@duum.net").name("Jax").cpf("32139122036").password("ScoutPass#12345").roles(Set.of(RoleEnum.ROLE_USER)).build(),
+                    UserData.builder().username("Lira Valen").email("lira.valen@scarlate.org").name("Lira Valen").cpf("65432198700").password("AliancaScarlate#123").roles(Set.of(RoleEnum.ROLE_USER)).build(),
+                    UserData.builder().username("Echo Tech").email("echo.tech@scarlate.org").name("Echo").cpf("98765432109").password("TechieDream#8888").roles(Set.of(RoleEnum.ROLE_USER)).build(),
+                    UserData.builder().username("Silas Merc").email("silas.merc@duum.net").name("Silas").cpf("12345678909").password("MercenaryLife#999").roles(Set.of(RoleEnum.ROLE_USER)).build()
             );
             usersToCreate.forEach(userData -> createUser(userRepository, passwordEncoder, userData));
 
-            // 3. Define e cria todos os produtos
+            // --- 2. Criação de Produtos ---
+            // Define uma lista de produtos para compor o catálogo inicial da loja.
             var productsToCreate = List.of(
                     ProductData.builder().name("Imperador Tenebris - Edição Arconte").description("Peça central do Império.").originalPrice(new BigDecimal("499.90")).xp(1500L).imageUrl("/assets/images/tenebris.webp").stockQuantity(10).onSale(true).discountPrice(new BigDecimal("399.90")).tags(Set.of("imperio-tenebris", "edicao-arconte", "destaques")).build(),
                     ProductData.builder().name("Caça Stealth da Aliança").description("O ápice da tecnologia Scarlate.").originalPrice(new BigDecimal("799.90")).xp(2500L).imageUrl("/assets/images/alianca-fighter.webp").stockQuantity(5).tags(Set.of("alianca-scarlate", "tecnologia-stealth")).build(),
@@ -84,13 +97,14 @@ public class DataInitializer {
         };
     }
 
-    private Role createRoleIfNotExists(RoleRepository repo, String name) {
-        return repo.findByName(name).orElseGet(() -> {
-            log.info(">>> Criando role padrão: {}", name);
-            return repo.save(Role.builder().name(name).build());
-        });
-    }
-
+    /**
+     * Cria uma nova entidade {@link User} se não houver um usuário com o mesmo email.
+     * A operação é idempotente para evitar a criação de duplicatas em reinicializações.
+     *
+     * @param repo O repositório de usuários.
+     * @param encoder O codificador de senhas.
+     * @param data O record com os dados do usuário a ser criado.
+     */
     private void createUser(UserRepository repo, PasswordEncoder encoder, UserData data) {
         if (repo.findByEmail(data.email()).isEmpty()) {
             User user = User.builder()
@@ -106,6 +120,13 @@ public class DataInitializer {
         }
     }
 
+    /**
+     * Cria uma nova entidade {@link Product} se não houver um produto com o mesmo nome.
+     * A operação é idempotente para evitar a criação de duplicatas.
+     *
+     * @param repo O repositório de produtos.
+     * @param data O record com os dados do produto a ser criado.
+     */
     private void createProduct(ProductRepository repo, ProductData data) {
         if (repo.findByName(data.name()).isEmpty()) {
             Product product = Product.builder()

@@ -12,7 +12,6 @@ import jakarta.validation.constraints.Pattern; // Importe a anotação
 public record LoginRequestDTO(
 
         @NotBlank(message = "O email é obrigatório.")
-        // ADICIONADO: Validação para proibir espaços no início/fim
         @Pattern(regexp = "^\\S.*\\S$", message = "O email não pode conter espaços no início ou no fim.")
         @Schema(description = "O email do usuário para autenticação.",
                 example = "kain.admin@upgeek.com",
@@ -20,7 +19,6 @@ public record LoginRequestDTO(
         String email,
 
         @NotBlank(message = "A senha é obrigatória.")
-        // ADICIONADO: Validação para proibir espaços no início/fim
         @Pattern(regexp = "^\\S.*\\S$", message = "A senha não pode conter espaços no início ou no fim.")
         @Schema(description = "A senha associada à conta do usuário.",
                 example = "AdminLegacy#7890",
