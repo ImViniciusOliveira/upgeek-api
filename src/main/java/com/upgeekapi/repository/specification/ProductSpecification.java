@@ -8,30 +8,35 @@ import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
 
 /**
- * Classe utilitária para criar instâncias de {@link Specification} para a entidade {@link Product}.
+ * Fábrica de especificações ({@link Specification}) para a entidade {@link Product}.
  * <p>
- * Centraliza toda a lógica de construção de queries dinâmicas, tornando o código
- * do serviço mais limpo e declarativo.
+ * Esta classe encapsula a lógica de construção de predicados de consulta complexos,
+ * permitindo que a camada de serviço construa queries dinâmicas de forma declarativa
+ * e segura, sem se acoplar aos detalhes da JPA Criteria API.
  */
 public final class ProductSpecification {
 
     /**
-     * Construtor privado para impedir a instanciação desta classe utilitária.
+     * Construtor privado para impedir a instanciação, reforçando o uso estático.
      */
     private ProductSpecification() {}
 
     /**
-     * Retorna uma especificação base que não aplica nenhum filtro.
-     * É o ponto de partida ideal para construir queries dinâmicas de forma segura.
+     * Retorna uma especificação neutra que é sempre verdadeira (semelhante a um `WHERE 1=1`).
+     * <p>
+     * É o ponto de partida ideal para construir queries dinâmicas, pois permite adicionar
+     * outras especificações com `.and()` sem a necessidade de verificar se a especificação
+     * inicial é nula.
      *
-     * @return uma {@link Specification} que é sempre verdadeira.
+     * @return uma {@link Specification} que não aplica nenhum filtro.
      */
     public static Specification<Product> conjunction() {
         return (root, query, builder) -> builder.conjunction();
     }
 
     /**
-     * Cria uma especificação para buscar produtos cujo nome contenha o texto fornecido (case-insensitive).
+     * Cria uma especificação que filtra produtos cujo nome contenha o texto fornecido,
+     * ignorando maiúsculas e minúsculas (case-insensitive).
      *
      * @param name O texto a ser buscado no nome do produto.
      * @return A {@link Specification} correspondente.
@@ -42,7 +47,8 @@ public final class ProductSpecification {
     }
 
     /**
-     * Cria uma especificação para buscar produtos cujo preço ativo seja maior ou igual ao valor fornecido.
+     * Cria uma especificação que filtra produtos cujo <b>preço ativo</b> (promocional ou original)
+     * seja maior ou igual ao valor mínimo fornecido.
      *
      * @param minPrice O preço mínimo para a busca.
      * @return A {@link Specification} correspondente.
@@ -53,7 +59,8 @@ public final class ProductSpecification {
     }
 
     /**
-     * Cria uma especificação para buscar produtos cujo preço ativo seja menor ou igual ao valor fornecido.
+     * Cria uma especificação que filtra produtos cujo <b>preço ativo</b> (promocional ou original)
+     * seja menor ou igual ao valor máximo fornecido.
      *
      * @param maxPrice O preço máximo para a busca.
      * @return A {@link Specification} correspondente.
@@ -64,13 +71,16 @@ public final class ProductSpecification {
     }
 
     /**
-     * Método auxiliar privado que encapsula a lógica para determinar o "preço ativo" de um produto.
+     * Constrói e retorna uma expressão da Criteria API que representa o preço ativo do produto.
      * <p>
-     * Isso gera uma expressão SQL "CASE WHEN on_sale = true THEN discount_price ELSE original_price END",
-     * que é a forma correta e performática de implementar essa regra de negócio no banco de dados.
+     * Esta lógica é traduzida pelo JPA para uma cláusula SQL {@code CASE}, garantindo que a regra de negócio
+     * (usar o preço com desconto se o produto estiver em promoção) seja executada de forma
+     * eficiente diretamente no banco de dados.
+     * <br>
+     * SQL gerado: {@code CASE WHEN on_sale = true THEN discount_price ELSE original_price END}
      *
-     * @param root O Root da query.
-     * @param builder O CriteriaBuilder da query.
+     * @param root O {@link Root} da query, de onde os campos da entidade são acessados.
+     * @param builder O {@link CriteriaBuilder} usado para construir as expressões.
      * @return Uma {@link Expression} que representa o preço a ser usado nos filtros.
      */
     private static Expression<BigDecimal> getActivePriceExpression(Root<Product> root, CriteriaBuilder builder) {

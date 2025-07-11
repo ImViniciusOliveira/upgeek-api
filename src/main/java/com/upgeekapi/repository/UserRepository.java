@@ -7,14 +7,16 @@ import java.util.Optional;
 
 /**
  * Repositório para operações de acesso a dados da entidade {@link User}.
- * Fornece métodos CRUD básicos e consultas customizadas herdadas de JpaRepository.
+ * <p>
+ * Estende {@link JpaRepository} para obter métodos CRUD prontos e define
+ * consultas customizadas que o Spring Data JPA implementa automaticamente com base
+ * na convenção de nomenclatura de métodos.
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
-     * Busca um usuário pelo seu endereço de email único.
-     * O Spring Data JPA implementa este método automaticamente baseado em seu nome.
+     * Busca um usuário pelo seu endereço de email único. Essencial para o processo de login.
      *
      * @param email O email do usuário a ser buscado.
      * @return um {@link Optional} contendo o usuário se encontrado, ou um Optional vazio caso contrário.
@@ -23,7 +25,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * Busca um usuário pelo seu nome de usuário único.
-     * Utilizado para garantir a unicidade do nome de usuário durante o registro.
+     * Utilizado para garantir a unicidade do nome de usuário durante o registro e atualização.
      *
      * @param username O nome de usuário a ser buscado.
      * @return um {@link Optional} contendo o usuário se encontrado, ou um Optional vazio caso contrário.

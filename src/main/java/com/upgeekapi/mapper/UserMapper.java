@@ -13,50 +13,55 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import java.util.List;
 
 /**
- * Interface gerenciada pelo MapStruct para converter a entidade {@link User}
- * em seus DTOs de representação e para aplicar atualizações parciais.
+ * Interface gerenciada pelo MapStruct para conversões relacionadas à entidade {@link User}.
+ * <p>
+ * Com a remoção dos dados de gamificação da entidade {@code User}, a responsabilidade
+ * deste mapper foi refinada. Ele agora foca em duas tarefas principais:
+ * <ol>
+ *     <li>Converter os dados de <b>perfil</b> da entidade {@link User} para o {@link UserAccountDTO}.
+ *     Os dados de gamificação (nível, xp) são intencionalmente ignorados, pois serão
+ *     adicionados por outro serviço ou assembler.</li>
+ *     <li>Aplicar atualizações parciais de um {@link UpdateAccountRequestDTO} para a entidade {@link User}.</li>
+ * </ol>
  */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
     // --- Mapeamentos para DTOs de Resposta ---
-
-    /**
-     * Mapeia um User para um UserAccountDTO (DTO de dados puros).
-     * Esta é a base para outras conversões.
-     */
-    @Mapping(source = "gamificationLevel", target = "level")
-    @Mapping(source = "experiencePoints", target = "xp")
-    @Mapping(target = "title", expression = "java(\"Colecionador Nível \" + user.getGamificationLevel())")
     UserAccountDTO toDto(User user);
 
     /**
-     * Mapeia uma lista de Users para uma lista de UserAccountDTOs.
+     * Mapeia uma lista de entidades {@link User} para uma lista de {@link UserAccountDTO}.
+     * Aplica a mesma lógica de {@link #toDto(User)} para cada item.
      */
     List<UserAccountDTO> toDto(List<User> users);
 
     /**
      * Converte a entidade {@link User} para o seu modelo de representação HATEOAS {@link AccountHateoasDTO}.
      * <p>
-     * Esta implementação explícita com 'default' method resolve a ambiguidade do MapStruct
-     * com DTOs imutáveis que possuem um "invólucro" (wrapper).
+     * Este método utiliza {@link #toDto(User)} para preencher os dados de perfil e os
+     * envolve no DTO HATEOAS.
      *
      * @param user A entidade de domínio a ser convertida.
-     * @return O DTO de resposta HATEOAS, com os dados preenchidos, pronto para receber os links.
+     * @return O DTO de resposta HATEOAS, pronto para receber os links e os dados de gamificação.
      */
     default AccountHateoasDTO toHateoasDTO(User user) {
         if (user == null) {
             return null;
         }
+        // Cria o DTO de dados com as informações de perfil.
         UserAccountDTO userData = toDto(user);
+        // Envolve no DTO HATEOAS.
         return new AccountHateoasDTO(userData);
     }
 
     // --- Mapeamento de Requisição (RequestDTO) para Entidade ---
 
     /**
-     * Atualiza uma entidade User a partir de um DTO, ignorando campos nulos.
-     * Permite que o usuário atualize apenas os dados que fornecer na requisição (estilo PATCH).
+     * Atualiza uma entidade {@link User} a partir de um {@link UpdateAccountRequestDTO}, ignorando campos nulos.
+     * <p>
+     * Esta estratégia permite que o cliente envie apenas os campos que deseja alterar (estilo PATCH).
+     * Campos de sistema como ID, CPF, senha e papéis são explicitamente ignorados para segurança.
      *
      * @param dto O DTO com os dados de origem para a atualização.
      * @param user A entidade de destino que será atualizada.
@@ -66,7 +71,5 @@ public interface UserMapper {
     @Mapping(target = "cpf", ignore = true)
     @Mapping(target = "roles", ignore = true)
     @Mapping(target = "password", ignore = true)
-    @Mapping(target = "experiencePoints", ignore = true)
-    @Mapping(target = "gamificationLevel", ignore = true)
     void updateUserFromDto(UpdateAccountRequestDTO dto, @MappingTarget User user);
 }

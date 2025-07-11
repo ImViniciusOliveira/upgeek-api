@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Data; // 1. Importar @Data
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter; // <-- ADICIONE ESTE IMPORT
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
@@ -17,10 +18,11 @@ import java.util.Set;
  * Modelo de representação HATEOAS para um Produto.
  * <p>
  * Este DTO contém todos os dados de um produto e estende {@link RepresentationModel}
- * para poder carregar links de ações da API.
+ * para poder carregar links de ações da API. As anotações de HATEOAS e Jackson
+ * garantem uma representação JSON limpa e padronizada.
  */
-// 2. Substituir @Getter e @EqualsAndHashCode por @Data
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)

@@ -1,6 +1,7 @@
 package com.upgeekapi.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email; // Import da anotação @Email
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
@@ -12,7 +13,7 @@ import jakarta.validation.constraints.Pattern;
 public record LoginRequestDTO(
 
         @NotBlank(message = "O email é obrigatório.")
-        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O email não pode conter espaços no início ou no fim.")
+        @Email(message = "O formato do email é inválido.")
         @Schema(description = "O email do usuário para autenticação.",
                 example = "kain.admin@upgeek.com",
                 requiredMode = Schema.RequiredMode.REQUIRED)

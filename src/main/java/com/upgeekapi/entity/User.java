@@ -1,15 +1,19 @@
 package com.upgeekapi.entity;
 
+import com.upgeekapi.dto.request.RegistrationRequestDTO;
+import com.upgeekapi.exception.custom.BusinessRuleException;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Representa um usuário no sistema.
- * Esta é uma entidade JPA, mapeada para a tabela "users" no banco de dados.
- * A identidade do usuário é gerenciada internamente por um UUID, garantindo
- * desacoplamento de provedores de autenticação externos.
+ * <p>
+ * Esta é uma entidade JPA, mapeada para a tabela "users". Ela é focada
+ * exclusivamente nos dados de identidade e perfil do usuário.
  */
 @Entity
 @Table(name = "users")
@@ -40,18 +44,58 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "level")
-    @Builder.Default
-    private int gamificationLevel = 1;
-
-    @Column(name = "xp")
-    @Builder.Default
-    private long experiencePoints = 0;
-
     @ElementCollection(targetClass = RoleEnum.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Enumerated(EnumType.STRING) // Garante que o nome do Enum ("ROLE_USER") seja salvo, e não um número.
+    @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     @Builder.Default
     private Set<RoleEnum> roles = new HashSet<>();
+
+    /**
+     * Método de fábrica estático para criar uma nova entidade User a partir de um DTO de registro.
+     * <p>
+     * Encapsula a lógica de construção, incluindo a atribuição de papéis padrão e
+     * a codificação da senha, mantendo o serviço de autenticação limpo.
+     *
+     * @param request O DTO com os dados de registro.
+     * @param passwordEncoder O encoder para criptografar a senha.
+     * @param uniqueUsername O nome de usuário único já gerado.
+     * @return Uma nova instância de {@link User}, pronta para ser persistida.
+     */
+    public static User from(RegistrationRequestDTO request, PasswordEncoder passwordEncoder, String uniqueUsername) {
+        return User.builder()
+                .username(uniqueUsername)
+                .email(request.email())
+                .name(request.name())
+                .cpf(request.cpf())
+                .password(passwordEncoder.encode(request.password()))
+                .roles(Set.of(RoleEnum.ROLE_USER)) // Todo novo usuário começa com a role padrão.
+                .build();
+    }
+
+    /**
+     * Altera a senha do usuário após validar a senha atual.
+     * <p>
+     * Encapsula as regras de negócio para a troca de senha, como a verificação
+     * da senha atual e a prevenção de que a nova senha seja igual à antiga.
+     *
+     * @param currentPassword A senha atual fornecida para verificação.
+     * @param newPassword A nova senha a ser definida.
+     * @param passwordEncoder O encoder para comparar e codificar as senhas.
+     * @throws BusinessRuleException se a senha atual estiver incorreta ou se a nova senha for igual à atual.
+     */
+    public void changePassword(String currentPassword, String newPassword, PasswordEncoder passwordEncoder) {
+        // Verifica se a senha atual fornecida corresponde à senha armazenada.
+        if (!passwordEncoder.matches(currentPassword, this.getPassword())) {
+            throw new BusinessRuleException("A senha atual está incorreta.");
+        }
+
+        // Impede que a nova senha seja igual à antiga.
+        if (passwordEncoder.matches(newPassword, this.getPassword())) {
+            throw new BusinessRuleException("A nova senha não pode ser igual à senha atual.");
+        }
+
+        // Se todas as validações passarem, codifica e define a nova senha.
+        this.setPassword(passwordEncoder.encode(newPassword));
+    }
 }

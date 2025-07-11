@@ -12,12 +12,12 @@ import org.springframework.hateoas.RepresentationModel;
 /**
  * Representação HATEOAS de uma conta de usuário.
  * <p>
- * Este DTO é projetado para ser imutável, atuando como um "invólucro" (wrapper)
- * para os dados do {@link UserAccountDTO} e adicionando a capacidade de carregar
- * links de ações da API. A anotação {@code @JsonUnwrapped} garante que o JSON
- * final seja "plano" para uma resposta de API mais limpa.
+ * Este DTO atua como um "invólucro" (wrapper) para os dados do {@link UserAccountDTO},
+ * adicionando a capacidade de carregar links de ações da API. A anotação {@code @JsonUnwrapped}
+ * é uma decisão de design chave que "achata" a estrutura do JSON final, resultando em
+ * uma resposta de API mais limpa e intuitiva para o consumidor.
  */
-@Getter // Apenas Getters, sem Setters para promover a imutabilidade.
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
@@ -25,15 +25,17 @@ import org.springframework.hateoas.RepresentationModel;
 public class AccountHateoasDTO extends RepresentationModel<AccountHateoasDTO> {
 
     /**
-     * Contém os dados da conta do usuário. A anotação @JsonUnwrapped
-     * "desembrulha" este objeto no JSON final, promovendo seus campos
-     * para o nível superior.
+     * Contém os dados da conta do usuário. A anotação {@code @JsonUnwrapped}
+     * "desempacota" este objeto no JSON final, promovendo seus campos
+     * para o nível superior da resposta.
      * <p>
-     * Exemplo de transformação:
+     * <b>Exemplo de Transformação:</b>
      * <br>
-     * de: <code>{ "userData": { "id": 1, ... }, "_links": { ... } }</code>
+     * De: <code>{ "userData": { "id": 1, ... }, "_links": { ... } }</code>
      * <br>
-     * para: <code>{ "id": 1, ..., "_links": { ... } }</code>
+     * Para: <code>{ "id": 1, ..., "_links": { ... } }</code>
+     * <br>
+     * Este design evita um nível de aninhamento desnecessário, tornando a API mais fácil de usar.
      */
     @JsonUnwrapped
     private UserAccountDTO userData;

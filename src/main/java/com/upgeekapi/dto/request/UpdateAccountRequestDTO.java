@@ -7,6 +7,9 @@ import jakarta.validation.constraints.Size;
 
 /**
  * DTO que representa os dados que um usuário pode atualizar em sua própria conta.
+ * <p>
+ * Como todos os campos são opcionais, o serviço de atualização deve tratar
+ * apenas os campos que não forem nulos no payload da requisição.
  */
 @Schema(description = "Dados permitidos para atualização na conta do usuário. Todos os campos são opcionais; envie apenas os que deseja alterar.")
 public record UpdateAccountRequestDTO(
@@ -18,14 +21,15 @@ public record UpdateAccountRequestDTO(
         String username,
 
         @Size(max = 100, message = "O nome completo não pode exceder 100 caracteres.")
-        @Pattern(regexp = "^[\\p{L} .'-]+$", message = "O nome completo contém caracteres inválidos.")
-        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O nome completo não pode conter espaços no início ou no fim.")
+        @Pattern(
+                regexp = "^[\\p{L}.'-]+(?: [\\p{L}.'-]+)*$",
+                message = "O nome completo contém caracteres inválidos ou espaços no início/fim."
+        )
         @Schema(description = "O novo nome de exibição público para o usuário.", example = "João O'Malley")
         String name,
 
         @Email(message = "O formato do email é inválido.")
         @Size(max = 255, message = "O email não pode exceder 255 caracteres.")
-        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O email não pode conter espaços no início ou no fim.")
         @Schema(description = "O novo email para login e contato.", example = "kain.prime@upgeek.com")
         String email
 ) {}

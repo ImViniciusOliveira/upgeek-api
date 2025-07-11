@@ -16,8 +16,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 /**
  * Implementação do serviço {@link ApiRootLinkService}.
  * <p>
- * Centraliza a lógica de geração de links HATEOAS para a raiz da API,
- * adaptando os links disponíveis com base no estado de autenticação do usuário.
+ * Esta classe é responsável por construir o ponto de entrada (API Root) da aplicação,
+ * seguindo os princípios HATEOAS. Ela gera uma resposta que contém links para os
+ * principais recursos da API, adaptando-os dinamicamente com base no estado de
+ * autenticação do usuário.
  */
 @Service
 public class ApiRootLinkServiceImpl implements ApiRootLinkService {
@@ -25,28 +27,36 @@ public class ApiRootLinkServiceImpl implements ApiRootLinkService {
     /**
      * {@inheritDoc}
      * <p>
-     * Constrói o modelo de representação com links dinâmicos. A supressão de warning
-     * "ConstantConditions" é necessária porque o Spring HATEOAS utiliza proxies que
-     * podem ser interpretados incorretamente como nulos pela análise estática.
+     * Constrói o modelo de representação com links dinâmicos. Links públicos são sempre
+     * incluídos, enquanto links para recursos protegidos (como a conta do usuário)
+     * são adicionados apenas se o usuário estiver autenticado.
+     * <p>
+     * <strong>Nota sobre {@code ConstantConditions}:</strong> A supressão deste warning
+     * é necessária porque o Spring HATEOAS utiliza proxies para construir os links,
+     * o que pode ser interpretado incorretamente como uma condição nula pela análise estática do código.
      */
     @Override
     @SuppressWarnings("ConstantConditions")
     public RepresentationModel<?> buildApiRootLinks(Authentication authentication) {
         RepresentationModel<?> rootModel = new RepresentationModel<>();
 
-        // Adiciona links públicos, que estão sempre disponíveis para qualquer usuário.
+        // 1. Adiciona links de recursos públicos, sempre disponíveis.
         rootModel.add(linkTo(methodOn(ProductController.class).getAllProducts()).withRel("products"));
 
-        // Adiciona links contextuais, disponíveis apenas para usuários autenticados.
+        // 2. Adiciona links contextuais baseados no estado de autenticação.
         if (isUserAuthenticated(authentication)) {
-            // O argumento 'null' é um placeholder para satisfazer a assinatura do método
-            // no controller, permitindo a geração correta do link HATEOAS.
+            // Para usuários autenticados, oferece links para gerenciamento de conta.
+            // O 'null' é um placeholder para satisfazer a assinatura do método no controller.
             rootModel.add(linkTo(methodOn(AccountController.class).getAccount(null)).withRel("account"));
-            rootModel.add(linkTo(methodOn(AuthController.class).getAuthenticatedUser(null)).withRel("authentication"));
+            rootModel.add(linkTo(methodOn(AuthController.class).getAuthenticatedUser(null)).withRel("me"));
+        } else {
+            // Para usuários não autenticados, oferece os links para login e registro.
+            rootModel.add(linkTo(methodOn(AuthController.class).login(null)).withRel("login"));
+            rootModel.add(linkTo(methodOn(AuthController.class).register(null)).withRel("register"));
         }
 
-        // Adiciona o link para o próprio recurso (self-referencing), uma prática padrão em HATEOAS.
-        rootModel.add(linkTo(methodOn(ApiRootController.class).getApiRoot()).withSelfRel());
+        // 3. Adiciona o link para o próprio recurso (self-referencing), essencial em HATEOAS.
+        rootModel.add(linkTo(methodOn(ApiRootController.class).getApiRoot(null)).withSelfRel());
 
         return rootModel;
     }
@@ -57,7 +67,7 @@ public class ApiRootLinkServiceImpl implements ApiRootLinkService {
      * Este método é crucial para diferenciar um usuário autenticado de um acesso anônimo,
      * que o Spring Security representa através de um {@link AnonymousAuthenticationToken}.
      *
-     * @param authentication O objeto de autenticação do contexto de segurança.
+     * @param authentication O objeto de autenticação do contexto de segurança, que pode ser nulo.
      * @return {@code true} se o usuário estiver autenticado e não for anônimo, {@code false} caso contrário.
      */
     private boolean isUserAuthenticated(Authentication authentication) {

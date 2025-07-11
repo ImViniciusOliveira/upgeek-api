@@ -3,6 +3,7 @@ package com.upgeekapi.controller.assembler;
 import com.upgeekapi.controller.ProductController;
 import com.upgeekapi.dto.hateoas.ProductHateoasDTO;
 import com.upgeekapi.entity.Product;
+import com.upgeekapi.entity.RoleEnum;
 import com.upgeekapi.mapper.ProductMapper;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 import org.springframework.lang.NonNull;
@@ -16,12 +17,13 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
- * Montador (Assembler) responsável por converter a entidade {@link Product}
- * em seu modelo de representação HATEOAS, o {@link ProductHateoasDTO}.
+ * Constrói o modelo de representação HATEOAS para a entidade {@link Product}.
  * <p>
- * Esta classe desacopla a lógica de construção de links da camada de Controller.
- * Ela primeiro usa o {@link ProductMapper} para a conversão dos dados e, em seguida,
- * enriquece o DTO com links contextuais que representam as ações possíveis na API.
+ * Esta classe implementa o padrão "Assembler" do Spring HATEOAS, desacoplando a
+ * lógica de construção de links da camada de Controller. Ela utiliza o {@link ProductMapper}
+ * para a conversão de dados e, em seguida, enriquece o DTO com links contextuais,
+ * incluindo links administrativos que são adicionados condicionalmente com base
+ * nas permissões do usuário autenticado.
  */
 @Component
 public class ProductHateoasAssembler extends RepresentationModelAssemblerSupport<Product, ProductHateoasDTO> {
@@ -34,7 +36,6 @@ public class ProductHateoasAssembler extends RepresentationModelAssemblerSupport
      * @param mapper O mapper para converter a entidade Product para seu DTO de dados.
      */
     public ProductHateoasAssembler(ProductMapper mapper) {
-        // Configura a classe base com o Controller e o DTO de destino.
         super(ProductController.class, ProductHateoasDTO.class);
         this.mapper = mapper;
     }
@@ -43,18 +44,22 @@ public class ProductHateoasAssembler extends RepresentationModelAssemblerSupport
      * {@inheritDoc}
      * <p>
      * Converte uma entidade {@link Product} em um {@link ProductHateoasDTO} e adiciona
-     * os links HATEOAS relevantes. Links administrativos como 'update' e 'delete'
-     * são adicionados condicionalmente, com base no papel do usuário autenticado.
+     * os links HATEOAS relevantes, que podem ser de três tipos:
+     * <ul>
+     *     <li><b>Links Estruturais:</b> Para o próprio recurso (self) e para a coleção (collection).</li>
+     *     <li><b>Links de Descoberta:</b> Links para cada tag, permitindo a navegação para produtos relacionados.</li>
+     *     <li><b>Links Condicionais:</b> Links de ações (update, delete) que aparecem apenas para usuários com permissão de administrador.</li>
+     * </ul>
      */
     @Override
+    @NonNull
+    @SuppressWarnings("ConstantConditions") // Suprime avisos da IDE sobre o uso de 'null' em methodOn, que é o comportamento esperado pelo HATEOAS.
     public ProductHateoasDTO toModel(@NonNull Product entity) {
         // 1. Delega a conversão de dados para o MapStruct, mantendo a lógica centralizada.
         ProductHateoasDTO model = mapper.toHateoasDTO(entity);
 
-        // 2. Enriquece o modelo com links HATEOAS.
-        // Link para o próprio recurso (self-referencing).
+        // 2. Enriquece o modelo com links HATEOAS estruturais e de descoberta.
         model.add(linkTo(methodOn(ProductController.class).getProductById(entity.getId())).withSelfRel());
-        // Link para a coleção de todos os produtos.
         model.add(linkTo(methodOn(ProductController.class).getAllProducts()).withRel("collection"));
 
         // Adiciona um link para cada tag do produto, permitindo a descoberta de produtos relacionados.
@@ -64,7 +69,7 @@ public class ProductHateoasAssembler extends RepresentationModelAssemblerSupport
                                 .withRel("tag").withTitle(tagName))
                 ));
 
-        // 3. Adiciona links condicionalmente, apenas para administradores.
+        // 3. Adiciona links de ações administrativas condicionalmente.
         if (checkUserHasAdminRole()) {
             model.add(linkTo(methodOn(ProductController.class)
                     .updateProduct(entity.getId(), null))
@@ -79,10 +84,12 @@ public class ProductHateoasAssembler extends RepresentationModelAssemblerSupport
     }
 
     /**
-     * Verifica de forma segura se o usuário atualmente autenticado possui o papel de 'ROLE_ADMIN'.
+     * Verifica de forma segura se o usuário atualmente autenticado possui o papel de 'ADMIN'.
      * <p>
-     * Este método auxiliar encapsula a lógica de segurança para determinar se
-     * os links de ações administrativas devem ser adicionados ao modelo de resposta.
+     * Este método auxiliar encapsula a lógica de verificação de permissão, garantindo que
+     * a checagem seja robusta e não lance exceções para usuários anônimos ou não autenticados,
+     * o que é comum em endpoints públicos. O uso do enum {@link RoleEnum} torna a verificação
+     * "type-safe", prevenindo erros de digitação.
      *
      * @return {@code true} se o usuário for um administrador, {@code false} caso contrário.
      */
@@ -92,6 +99,7 @@ public class ProductHateoasAssembler extends RepresentationModelAssemblerSupport
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             return false;
         }
-        return authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        // A verificação usa o enum, tornando-a type-safe e mais robusta.
+        return authentication.getAuthorities().contains(new SimpleGrantedAuthority(RoleEnum.ROLE_ADMIN.getAuthority()));
     }
 }

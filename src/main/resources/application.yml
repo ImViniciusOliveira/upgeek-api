@@ -47,12 +47,19 @@ spring:
 
   jpa:
     hibernate:
-      # Apaga e recria o banco a cada reinicialização, garantindo um estado limpo.
-      ddl-auto: create-drop
+      ddl-auto: validate
     properties:
       hibernate:
-        # Define o "sotaque" que o Hibernate usará para falar com o PostgreSQL.
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  #Config do FlyWay
+  flyway:
+    # Habilita o Flyway (bom ser explícito)
+    enabled: true
+    # Informa ao Flyway para procurar os scripts SQL nesta pasta
+    locations: classpath:db/migration
+    # Diz ao Flyway: "Se o banco já tiver tabelas mas não um histórico,
+    # crie o histórico e considere a versão 1 como já aplicada."
+    baseline-on-migrate: true
 
 ---
 

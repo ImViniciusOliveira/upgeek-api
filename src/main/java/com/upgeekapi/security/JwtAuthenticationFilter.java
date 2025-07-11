@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,15 +23,12 @@ import java.util.Optional;
  * sendo responsável por extrair o token, validá-lo e popular o SecurityContext se o token for válido.
  */
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final TokenService tokenService;
     private static final String HEADER_AUTHORIZATION = "Authorization";
     private static final String TOKEN_PREFIX = "Bearer ";
-
-    public JwtAuthenticationFilter(TokenService tokenService) {
-        this.tokenService = tokenService;
-    }
 
     /**
      * O coração do filtro. Este método é executado para cada requisição.
@@ -46,12 +44,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         getTokenFromHeader(request)
                 .flatMap(tokenService::validateToken)
                 .ifPresent(principal -> {
+                    // Converte as roles (String) do nosso principal para as autoridades do Spring Security.
                     var authorities = principal.roles().stream()
                             .map(SimpleGrantedAuthority::new)
                             .toList();
 
-                    var authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
+                    // Cria o objeto de autenticação que o Spring Security usará.
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            principal, // O principal é o nosso AuthPrincipal, contendo id e roles.
+                            null,      // Não há credenciais (senha) após a validação do token.
+                            authorities
+                    );
 
+                    // Define o usuário como autenticado para esta requisição.
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 });
 

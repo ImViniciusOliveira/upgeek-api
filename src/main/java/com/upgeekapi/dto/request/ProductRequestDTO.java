@@ -12,18 +12,23 @@ import java.util.Set;
 
 /**
  * DTO que representa os dados para criar ou atualizar um produto.
+ * <p>
+ * Utiliza validações de bean para garantir a integridade dos dados e uma
+ * anotação customizada {@link ValidDiscount} para regras de negócio complexas
+ * que envolvem múltiplos campos (como a relação entre preço e promoção).
  */
 @Schema(description = "Dados necessários para criar ou atualizar um produto.")
 @ValidDiscount
 public record ProductRequestDTO(
+
         @NotBlank(message = "O nome do produto é obrigatório.")
         @Size(max = 255, message = "O nome do produto não pode exceder 255 caracteres.")
         @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O nome do produto não pode conter espaços no início ou no fim.")
-        @Schema(description = "O nome do produto.", example = "Estátua de Lira Valen", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "O nome do produto. Permite espaços internos, mas não nas extremidades.", example = "Estátua de Lira Valen", requiredMode = Schema.RequiredMode.REQUIRED)
         String name,
 
         @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A descrição não pode conter espaços no início ou no fim.")
-        @Schema(description = "A descrição detalhada do produto.")
+        @Schema(description = "A descrição detalhada do produto (opcional).")
         String description,
 
         @NotNull(message = "O preço original é obrigatório.")
@@ -32,7 +37,7 @@ public record ProductRequestDTO(
         BigDecimal originalPrice,
 
         @PositiveOrZero(message = "O preço com desconto não pode ser negativo.")
-        @Schema(description = "O preço com desconto. Deve ser informado se 'onSale' for true. Pode ser nulo se 'onSale' for false.", example = "499.90")
+        @Schema(description = "O preço com desconto. Obrigatório se 'onSale' for true.", example = "499.90")
         BigDecimal discountPrice,
 
         @NotNull(message = "É obrigatório indicar se o produto está em promoção.")
@@ -45,8 +50,8 @@ public record ProductRequestDTO(
         Long xp,
 
         @NotBlank(message = "A URL da imagem é obrigatória.")
-        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A URL da imagem não pode conter espaços no início ou no fim.")
-        @Schema(description = "A URL da imagem principal do produto.", example = "/assets/images/lira-valen.webp", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Pattern(regexp = "^\\S+$", message = "A URL da imagem não pode conter espaços.")
+        @Schema(description = "A URL da imagem principal do produto. Não deve conter espaços.", example = "/assets/images/lira-valen.webp", requiredMode = Schema.RequiredMode.REQUIRED)
         String imageUrl,
 
         @NotNull(message = "A quantidade em estoque é obrigatória.")
@@ -54,11 +59,11 @@ public record ProductRequestDTO(
         @Schema(description = "A quantidade de itens em estoque.", example = "20", requiredMode = Schema.RequiredMode.REQUIRED)
         Integer stockQuantity,
 
-        @Schema(description = "Conjunto de tags ou categorias associadas ao produto.", example = "[\"alianca-scarlate\", \"edicao-limitada\"]")
+        @Schema(description = "Conjunto de tags ou categorias associadas ao produto. Cada tag não pode conter espaços.", example = "[\"alianca-scarlate\", \"edicao-limitada\"]")
         Set<
                 @NotBlank(message = "A tag não pode ser vazia.")
                 @Size(max = 50, message = "A tag não pode exceder 50 caracteres.")
-                @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A tag não pode conter espaços no início ou no fim.")
+                @Pattern(regexp = "^\\S+$", message = "A tag não pode conter espaços.")
                         String
                 > tags
 ) {}
