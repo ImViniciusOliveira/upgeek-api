@@ -1,28 +1,32 @@
 package com.upgeekapi.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Representa um usuário no sistema.
- * Agora inclui um campo para a senha criptografada.
+ * Esta é uma entidade JPA, mapeada para a tabela "users" no banco de dados.
+ * A identidade do usuário é gerenciada internamente por um UUID, garantindo
+ * desacoplamento de provedores de autenticação externos.
  */
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(of = "id")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true, nullable = false, length = 30)
+    private String username;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -30,26 +34,24 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column(unique = true, nullable = false, length = 11)
+    private String cpf;
+
     @Column(nullable = false)
-    private String password; // NOVO: Campo para armazenar a senha HASHED
+    private String password;
 
     @Column(name = "level")
+    @Builder.Default
     private int gamificationLevel = 1;
 
     @Column(name = "xp")
+    @Builder.Default
     private long experiencePoints = 0;
 
-    @ManyToMany(fetch = FetchType.EAGER) // EAGER para que as roles sejam carregadas junto com o usuário
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
-
-    public User(String email, String name, String password) {
-        this.email = email;
-        this.name = name;
-        this.password = password;
-    }
+    @ElementCollection(targetClass = RoleEnum.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING) // Garante que o nome do Enum ("ROLE_USER") seja salvo, e não um número.
+    @Column(name = "role", nullable = false)
+    @Builder.Default
+    private Set<RoleEnum> roles = new HashSet<>();
 }

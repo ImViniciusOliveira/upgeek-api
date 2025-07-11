@@ -1,28 +1,33 @@
 package com.upgeekapi.dto.response;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.time.Instant;
+import java.util.Map;
 
 /**
- * Representa uma estrutura de resposta de erro padronizada para a API,
- * garantindo que os erros sejam comunicados de forma consistente ao cliente.
+ * DTO padronizado e imutável para respostas de erro da API.
+ * Pode conter uma mensagem de erro geral e, opcionalmente, um mapa
+ * de erros específicos de campo para falhas de validação.
  */
-@Schema(description = "Objeto padronizado para respostas de erro da API.")
-public record ErrorDTO(
+@Getter
+@RequiredArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ErrorDTO {
 
-        @Schema(description = "O momento exato em que o erro ocorreu, em formato UTC.",
-                example = "2025-06-26T03:30:00.123Z")
-        Instant timestamp,
+        private final Instant timestamp;
+        private final int status;
+        private final String error;
+        private final String message;
+        private final Map<String, String> fieldErrors;
 
-        @Schema(description = "O código de status HTTP que representa o erro.",
-                example = "404")
-        Integer status,
-
-        @Schema(description = "A descrição textual do status HTTP.",
-                example = "Not Found")
-        String error,
-
-        @Schema(description = "A mensagem detalhada e legível que descreve a causa específica do erro.",
-                example = "Recurso 'Usuário' com o identificador 'ninguem@email.com' não foi encontrado.")
-        String message
-) {}
+        /**
+         * Construtor para erros que não possuem detalhes de validação de campo.
+         * Um atalho conveniente que chama o construtor principal.
+         */
+        public ErrorDTO(Instant timestamp, int status, String error, String message) {
+                this(timestamp, status, error, message, null);
+        }
+}

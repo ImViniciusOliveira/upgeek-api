@@ -1,15 +1,27 @@
 package com.upgeekapi.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * DTO que representa os dados de credenciais para uma tentativa de login.
+ * Usado como o corpo da requisição (payload) no endpoint de autenticação.
  */
 @Schema(description = "Credenciais necessárias para autenticação.")
 public record LoginRequestDTO(
-        @Schema(description = "Email do usuário.", example = "geek.master@email.com", requiredMode = Schema.RequiredMode.REQUIRED)
+
+        @NotBlank(message = "O email é obrigatório.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "O email não pode conter espaços no início ou no fim.")
+        @Schema(description = "O email do usuário para autenticação.",
+                example = "kain.admin@upgeek.com",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         String email,
 
-        @Schema(description = "Senha do usuário.", example = "senha123", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "A senha é obrigatória.")
+        @Pattern(regexp = "^\\S.*\\S$|^\\S*$", message = "A senha não pode conter espaços no início ou no fim.")
+        @Schema(description = "A senha associada à conta do usuário.",
+                example = "AdminLegacy#7890",
+                requiredMode = Schema.RequiredMode.REQUIRED)
         String password
 ) {}

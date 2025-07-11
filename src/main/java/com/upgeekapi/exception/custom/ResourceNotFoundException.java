@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * Exceção lançada quando uma busca por um recurso específico (ex: User, Product)
  * não retorna nenhum resultado.
+ * <p>
  * Indica que o recurso solicitado não existe no sistema.
  * Mapeia para o status HTTP 404 (Not Found).
  */
