@@ -5,15 +5,15 @@ import com.upgeekapi.exception.custom.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Componente central de tratamento de exceções para a API.
@@ -68,26 +68,37 @@ public class GlobalExceptionHandler {
 
     /**
      * Captura a {@link MethodArgumentNotValidException}, lançada pelo Spring quando a validação de um DTO falha.
-     * Transforma os erros de validação em uma resposta estruturada com um mapa de erros por campo.
+     * Transforma os erros de validação (tanto de campo quanto de classe) em uma resposta estruturada.
      *
      * @param ex A exceção contendo todos os erros de validação de DTO.
      * @return Um ResponseEntity com status 400 e um corpo de erro estruturado.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDTO> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        fieldError -> fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "Erro de validação não especificado",
-                        (existingValue, newValue) -> existingValue // Em caso de chaves duplicadas, mantém a primeira.
-                ));
+        // Usamos um HashMap para poder adicionar os dois tipos de erro.
+        Map<String, String> errors = new HashMap<>();
+
+        // 1. Adiciona os erros de campo (field-level), como @NotBlank, @Size, etc.
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            String fieldName = error.getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        // 2. Adiciona os erros de classe (class-level/global), como a sua @ValidPriceRange.
+        ex.getBindingResult().getGlobalErrors().forEach(error -> {
+            // Para erros globais, usamos o nome do objeto como chave para clareza.
+            String objectName = error.getObjectName();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(objectName, errorMessage);
+        });
 
         ErrorDTO errorDto = new ErrorDTO(
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
                 "Um ou mais campos falharam na validação.",
-                fieldErrors
+                errors // <-- Usamos o novo mapa combinado
         );
 
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
@@ -123,6 +134,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDTO> handleNoResourceFound(NoResourceFoundException ex) {
         String errorMessage = "O endpoint solicitado não foi encontrado: " + ex.getResourcePath();
         return buildErrorResponse(errorMessage, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Captura a HttpMessageNotReadableException, comumente lançada quando o corpo da requisição
+     * é um JSON malformado ou inválido.
+     *
+     * @param ex A exceção que indica que a requisição não pôde ser lida.
+     * @return Um ResponseEntity com o status 400 e uma mensagem clara sobre o erro de sintaxe.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorDTO> handleMalformedJson(HttpMessageNotReadableException ex) {
+        String userFriendlyMessage = "A requisição contém um JSON malformado ou com sintaxe inválida. Por favor, verifique o corpo da requisição.";
+        log.warn("Requisição rejeitada por JSON malformado. Causa: {}", ex.getMessage());
+        return buildErrorResponse(userFriendlyMessage, HttpStatus.BAD_REQUEST);
     }
 
     /**

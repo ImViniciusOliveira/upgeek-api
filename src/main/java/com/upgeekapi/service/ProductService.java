@@ -1,9 +1,9 @@
 package com.upgeekapi.service;
 
 import com.upgeekapi.dto.request.ProductRequestDTO;
+import com.upgeekapi.dto.request.ProductSearchRequestDto;
 import com.upgeekapi.entity.Product; // Importamos a entidade
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -34,14 +34,6 @@ public interface ProductService {
      */
     List<Product> getProductsByTag(String tag);
 
-    /**
-     * Busca produtos com base em critérios de filtro dinâmicos.
-     * @param name Critério de busca por nome (parcial).
-     * @param minPrice Preço mínimo.
-     * @param maxPrice Preço máximo.
-     * @return Uma lista de {@link Product} que correspondem aos filtros.
-     */
-    List<Product> searchProducts(String name, BigDecimal minPrice, BigDecimal maxPrice);
 
     /**
      * Busca uma única entidade de produto pelo seu ID.
@@ -72,4 +64,11 @@ public interface ProductService {
      * @param productId O ID do produto a ser deletado.
      */
     void deleteProduct(Long productId);
+
+    /**
+     * Busca produtos com base em critérios de filtro dinâmicos encapsulados em um DTO.
+     * @param searchDto O DTO com os critérios de busca.
+     * @return Uma lista de {@link Product} que correspondem aos filtros.
+     */
+    List<Product> searchProducts(ProductSearchRequestDto searchDto);
 }

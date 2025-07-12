@@ -3,6 +3,7 @@ package com.upgeekapi.controller;
 import com.upgeekapi.controller.assembler.ProductHateoasAssembler;
 import com.upgeekapi.dto.hateoas.ProductHateoasDTO;
 import com.upgeekapi.dto.request.ProductRequestDTO;
+import com.upgeekapi.dto.request.ProductSearchRequestDto;
 import com.upgeekapi.dto.response.ErrorDTO;
 import com.upgeekapi.entity.Product;
 import com.upgeekapi.service.ProductService;
@@ -93,20 +94,28 @@ public class ProductController {
     }
 
     /**
-     * Busca produtos com base em um conjunto de filtros dinâmicos.
-     * @param name Critério de busca por nome (parcial, case-insensitive).
-     * @param minPrice Preço mínimo para o filtro.
-     * @param maxPrice Preço máximo para o filtro.
+     * Busca produtos com base em um conjunto de filtros dinâmicos encapsulados em um DTO.
+     * <p>
+     * Este endpoint utiliza o método POST para permitir um corpo de requisição (payload)
+     * estruturado, o que é ideal para critérios de busca complexos. O DTO recebido
+     * é validado antes do processamento, garantindo a integridade dos filtros.
+     *
+     * @param searchDto DTO contendo os critérios de busca validados (nome, faixa de preço, etc.).
      * @return Um {@link CollectionModel} com os produtos que correspondem aos critérios.
      */
-    @GetMapping("/search")
-    @Operation(summary = "Buscar produtos com filtros dinâmicos")
+    @PostMapping("/search")
+    @Operation(summary = "Buscar produtos com filtros dinâmicos", description = "Utiliza POST para permitir um corpo de requisição com múltiplos critérios de busca.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Critérios de busca inválidos.",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Nenhum produto encontrado com os critérios informados.",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorDTO.class)))
+    })
     public CollectionModel<ProductHateoasDTO> searchProducts(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
-
-        List<Product> products = productService.searchProducts(name, minPrice, maxPrice);
+            @Valid @RequestBody ProductSearchRequestDto searchDto
+    ) {
+        List<Product> products = productService.searchProducts(searchDto);
         return assembler.toCollectionModel(products);
     }
 

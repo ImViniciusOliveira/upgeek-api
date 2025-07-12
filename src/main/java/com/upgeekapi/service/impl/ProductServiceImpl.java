@@ -1,18 +1,17 @@
 package com.upgeekapi.service.impl;
 
 import com.upgeekapi.dto.request.ProductRequestDTO;
+import com.upgeekapi.dto.request.ProductSearchRequestDto;
 import com.upgeekapi.entity.Product;
 import com.upgeekapi.exception.custom.DataConflictException;
 import com.upgeekapi.exception.custom.ResourceNotFoundException;
 import com.upgeekapi.repository.ProductRepository;
-import com.upgeekapi.repository.specification.ProductSpecification;
 import com.upgeekapi.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -20,14 +19,15 @@ import java.util.List;
  * <p>
  * Esta classe orquestra a lógica de negócio para produtos, atuando como uma ponte
  * entre os controllers e a camada de persistência. Ela delega a construção de
- * entidades para a própria {@link Product} (Modelo de Domínio Rico) e a construção
- * de queries dinâmicas para o padrão {@link ProductSpecification}.
+ * entidades para a própria {@link Product} e gerencia as atualizações através do
+ * padrão Builder para promover um fluxo de dados mais imutável.
  */
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductSearcherImpl productSearcher;
 
     @Override
     @Transactional(readOnly = true)
@@ -44,28 +44,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<Product> getProductsByTag(String tag) {
-        return productRepository.findByTagsContaining(tag);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Product> searchProducts(String name, BigDecimal minPrice, BigDecimal maxPrice) {
-        // Inicia com uma especificação que não filtra nada (WHERE 1=1).
-        // A API foi simplificada, não sendo mais necessário usar o obsoleto Specification.where().
-        Specification<Product> spec = ProductSpecification.conjunction();
-
-        // Adiciona dinamicamente os filtros com base nos parâmetros fornecidos.
-        if (name != null && !name.isBlank()) {
-            spec = spec.and(ProductSpecification.nameLike(name));
+        List<Product> products = productRepository.findByTagsContaining(tag);
+        if (products.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum produto encontrado com a tag '" + tag + "'.");
         }
-        if (minPrice != null) {
-            spec = spec.and(ProductSpecification.priceGreaterThanOrEqual(minPrice));
-        }
-        if (maxPrice != null) {
-            spec = spec.and(ProductSpecification.priceLessThanOrEqual(maxPrice));
-        }
-
-        return productRepository.findAll(spec);
+        return products;
     }
 
     @Override
@@ -81,20 +64,42 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(newProduct);
     }
 
+    /**
+     * Atualiza uma entidade de produto existente usando o padrão Builder.
+     * <p>
+     * Este método cria uma nova instância da entidade com os dados atualizados,
+     * promovendo a imutabilidade e tornando o fluxo de dados mais previsível.
+     *
+     * @param productId O ID do produto a ser atualizado.
+     * @param request O DTO com os novos dados do produto.
+     * @return A entidade {@link Product} atualizada.
+     */
     @Override
     @Transactional
     public Product updateProduct(Long productId, ProductRequestDTO request) {
-        // 1. Busca a entidade a ser atualizada, garantindo que ela exista.
-        Product productToUpdate = findProductOrThrow(productId);
+        // 1. Busca a entidade atual, garantindo que ela exista.
+        Product currentProduct = findProductOrThrow(productId);
 
         // 2. Valida as regras de negócio, como a unicidade do novo nome.
         validateNameUniquenessOnUpdate(request.name(), productId);
 
-        // 3. Delega a lógica de atualização para a própria entidade.
-        productToUpdate.updateFrom(request);
+        // 3. Usa o padrão toBuilder() para criar uma cópia atualizada da entidade.
+        // Este método cria um novo builder pré-populado com os dados de 'currentProduct'.
+        Product updatedProduct = currentProduct.toBuilder()
+                .name(request.name())
+                .description(request.description())
+                .originalPrice(request.originalPrice())
+                .onSale(request.onSale())
+                // Aplica a regra de negócio do preço com desconto.
+                .discountPrice(request.onSale() ? request.discountPrice() : null)
+                .xp(request.xp())
+                .imageUrl(request.imageUrl())
+                .stockQuantity(request.stockQuantity())
+                .tags(request.tags() != null ? new HashSet<>(request.tags()) : new HashSet<>())
+                .build(); // .build() cria a nova instância da entidade com os dados combinados.
 
-        // 4. Persiste as alterações.
-        return productRepository.save(productToUpdate);
+        // 4. Persiste a entidade atualizada. O JPA é inteligente e fará um UPDATE no banco.
+        return productRepository.save(updatedProduct);
     }
 
     @Override
@@ -119,9 +124,10 @@ public class ProductServiceImpl implements ProductService {
      * @throws DataConflictException se o nome já estiver em uso.
      */
     private void validateNameUniquenessOnCreate(String name) {
-        productRepository.findByName(name).ifPresent(p -> {
-            throw new DataConflictException("Um produto com o nome '" + name + "' já existe.");
-        });
+        productRepository.findByName(name)
+                .ifPresent(p -> {
+                    throw new DataConflictException("Um produto com o nome '" + name + "' já existe.");
+                });
     }
 
     /**
@@ -150,6 +156,20 @@ public class ProductServiceImpl implements ProductService {
      */
     private Product findProductOrThrow(Long productId) {
         return productRepository.findById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException("Produto com ID '" + productId + "' não encontrado."));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Produto com ID '" + productId + "' não encontrado."));
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Delega a lógica de busca complexa para o ProductSearcherService,
+     * mantendo o {@link ProductServiceImpl} focado em orquestrar as operações
+     * de negócio principais (CRUD).
+     */
+    @Override
+    public List<Product> searchProducts(ProductSearchRequestDto searchDto) {
+        // Delega a execução da busca para o serviço especializado, mantendo este serviço coeso.
+        return productSearcher.searchOrFail(searchDto);
     }
 }
